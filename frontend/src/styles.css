@@ -1,0 +1,43 @@
+/* ===========================
+   TOPOPRO FC - ESTILOS GLOBALES
+=========================== */
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "primeicons/primeicons.css";
+
+/* Reset */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+
+    height:100%;
+
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+    background:#f5f7fa;
+
+}
+
+body{
+
+    margin:0;
+
+}
+
+a{
+
+    text-decoration:none;
+
+}
+
+button{
+
+    cursor:pointer;
+
+}

@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  nit       String?
+  telefono  String?
+  correo    String?
+  direccion String?
+  ciudad    String?
+  contacto  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("clientes")
+}
+
+model Usuario {
+  id                       Int                  @id @default(autoincrement())
+  nombre                   String
+  apellido                 String
+  correo                   String               @unique
+  password                 String
+  telefono                 String?
+  profesion                String?
+  empresa                  String?
+  ciudad                   String?
+  pais                     String?
+  foto                     String?
+  rol                      Rol                  @default(USUARIO)
+  fechaRegistro            DateTime             @default(now())
+  activo                   Boolean              @default(true)
+  emailVerificado          Boolean              @default(false)
+  fechaActualiza           DateTime             @updatedAt
+  emailVerificationExpires DateTime?
+  emailVerificationToken   String?              @unique
+  clientes                 Cliente[]
+  comentarios              Comentario[]
+  equipos                  Equipo[]
+  levantamientos           Levantamiento[]
+  passwordResetTokens      PasswordResetToken[]
+  proyectos                Proyecto[]
+  publicaciones            Publicacion[]
+
+  @@map("usuarios")
+}
+
+model Proyecto {
+  id             Int                       @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  cliente        String
+  ubicacion      String
+  estado         String                    @default("EN_PROGRESO")
+  fechaInicio    DateTime                  @default(now())
+  fechaFin       DateTime?
+  usuarioId      Int
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  latitud        Float?
+  longitud       Float?
+  ubicacion_geo  Unsupported("geography")?
+  archivos       Archivo[]
+  equipos        Equipo[]
+  levantamientos Levantamiento[]
+  usuario        Usuario                   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  puntos         PuntoTopografico[]
+
+  @@map("proyectos")
+}
+
+model PuntoTopografico {
+  id            Int                       @id @default(autoincrement())
+  codigo        String
+  norte         Float
+  este          Float
+  elevacion     Float
+  descripcion   String?
+  tipo          String?
+  precision     Float?
+  equipo        String?
+  metodo        String?
+  observaciones String?
+  proyectoId    Int
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  latitud       Float?
+  longitud      Float?
+  ubicacion_geo Unsupported("geography")?
+  archivos      Archivo[]
+  proyecto      Proyecto                  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+
+  @@map("puntos_topograficos")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  usuarioId Int
+  createdAt DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model Archivo {
+  id         Int               @id @default(autoincrement())
+  nombre     String
+  url        String
+  tipo       String
+  proyectoId Int?
+  puntoId    Int?
+  createdAt  DateTime          @default(now())
+  proyecto   Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  punto      PuntoTopografico? @relation(fields: [puntoId], references: [id], onDelete: Cascade)
+
+  @@map("archivos")
+}
+
+model Publicacion {
+  id          Int             @id @default(autoincrement())
+  titulo      String
+  contenido   String
+  tipo        TipoPublicacion @default(COMUNIDAD)
+  imagen      String?
+  usuarioId   Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  comentarios Comentario[]
+  usuario     Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("publicaciones")
+}
+
+model Comentario {
+  id            Int         @id @default(autoincrement())
+  contenido     String
+  usuarioId     Int
+  publicacionId Int
+  createdAt     DateTime    @default(now())
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("comentarios")
+}
+
+model Equipo {
+  id             Int             @id @default(autoincrement())
+  nombre         String
+  tipo           String
+  marca          String?
+  modelo         String?
+  numeroSerie    String?         @unique
+  fechaCompra    DateTime?
+  estado         String          @default("DISPONIBLE")
+  proyectoId     Int?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  usuarioId      Int
+  proyecto       Proyecto?       @relation(fields: [proyectoId], references: [id])
+  usuario        Usuario         @relation(fields: [usuarioId], references: [id])
+  levantamientos Levantamiento[]
+
+  @@map("equipos")
+}
+
+model Levantamiento {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  descripcion   String?
+  observaciones String?
+  estado        String   @default("PLANIFICADO")
+  proyectoId    Int
+  equipoId      Int?
+  responsableId Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  equipo        Equipo?  @relation(fields: [equipoId], references: [id])
+  proyecto      Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  responsable   Usuario  @relation(fields: [responsableId], references: [id], onDelete: Cascade)
+
+  @@map("levantamientos")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum TipoPublicacion {
+  NOTICIA
+  COMUNIDAD
+}
+
+enum Rol {
+  ADMIN
+  USUARIO
+}

@@ -1,0 +1,133 @@
+<div
+    class="dialog-backdrop"
+    *ngIf="visible && publicacion"
+>
+
+    <div class="dialog">
+
+        <div class="dialog-header">
+
+            <div>
+
+                <h2>{{ publicacion.titulo }}</h2>
+
+                <small>
+
+                    {{ publicacion.usuario.nombre }}
+                    {{ publicacion.usuario.apellido }}
+
+                    ·
+
+                    {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
+
+                </small>
+
+            </div>
+
+            <button
+                class="btn-cerrar"
+                (click)="cerrarDialogo()"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <div class="dialog-body">
+
+            <p class="contenido">
+
+                {{ publicacion.contenido }}
+
+            </p>
+
+            <img
+                *ngIf="publicacion.imagen"
+                class="imagen-publicacion"
+                [src]="publicacion.imagen"
+                alt="Imagen"
+            >
+
+            <hr>
+
+            <h3>
+
+                Comentarios
+
+                ({{ publicacion.comentarios?.length ?? 0 }})
+
+            </h3>
+
+            <div
+                class="sin-comentarios"
+                *ngIf="!publicacion.comentarios?.length"
+            >
+
+                Todavía no hay comentarios.
+
+            </div>
+
+            <div
+                class="comentario"
+                *ngFor="let comentario of publicacion.comentarios"
+            >
+
+                <div class="comentario-header">
+
+                    <strong>
+
+                        {{ comentario.usuario.nombre }}
+                        {{ comentario.usuario.apellido }}
+
+                    </strong>
+
+                    <small>
+
+                        {{ comentario.createdAt | date:'dd/MM/yyyy HH:mm' }}
+
+                    </small>
+
+                </div>
+
+                <p>
+
+                    {{ comentario.contenido }}
+
+                </p>
+
+                <button
+                    class="btn-eliminar"
+                    *ngIf="puedeEliminarComentario(comentario.usuarioId)"
+                    (click)="eliminarComentario.emit(comentario.id)"
+                >
+
+                    🗑 Eliminar
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="dialog-footer">
+
+            <textarea
+                rows="3"
+                [(ngModel)]="comentario"
+                placeholder="Escribe un comentario..."
+            ></textarea>
+
+            <button
+                class="btn-publicar"
+                (click)="enviarComentario()"
+            >
+
+                Publicar comentario
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,116 @@
+<div class="card-publicacion">
+
+    <div class="card-header">
+
+        <div class="usuario">
+
+            <div class="avatar">
+
+                <img
+                    *ngIf="publicacion.usuario.foto"
+                    [src]="publicacion.usuario.foto"
+                    [alt]="obtenerNombreCompleto()"
+                >
+
+                <span *ngIf="!publicacion.usuario.foto">
+
+                    {{ obtenerIniciales() }}
+
+                </span>
+
+            </div>
+
+            <div class="datos-usuario">
+
+                <h3>
+
+                    {{ obtenerNombreCompleto() }}
+
+                </h3>
+
+                <small>
+
+                    {{ publicacion.createdAt | date:'dd/MM/yyyy HH:mm' }}
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <span
+            class="badge"
+            [ngClass]="{
+                'badge-noticia': publicacion.tipo === 'NOTICIA',
+                'badge-comunidad': publicacion.tipo === 'COMUNIDAD'
+            }"
+        >
+
+            {{ publicacion.tipo }}
+
+        </span>
+
+    </div>
+
+    <div class="card-body">
+
+        <h2>
+
+            {{ publicacion.titulo }}
+
+        </h2>
+
+        <p>
+
+            {{ publicacion.contenido }}
+
+        </p>
+
+        <img
+            *ngIf="publicacion.imagen"
+            class="imagen-publicacion"
+            [src]="publicacion.imagen"
+            alt="Imagen de la publicación"
+        >
+
+    </div>
+
+    <div class="card-footer">
+
+        <button
+            class="btn-link"
+            (click)="abrirDetalle()"
+        >
+
+            💬 {{ publicacion._count?.comentarios ?? 0 }} comentarios
+
+        </button>
+
+        <div
+            class="acciones"
+            *ngIf="puedeEditar()"
+        >
+
+            <button
+                class="btn-icon"
+                (click)="editarPublicacion()"
+            >
+
+                ✏️ Editar
+
+            </button>
+
+            <button
+                class="btn-icon danger"
+                (click)="eliminarPublicacion()"
+            >
+
+                🗑 Eliminar
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

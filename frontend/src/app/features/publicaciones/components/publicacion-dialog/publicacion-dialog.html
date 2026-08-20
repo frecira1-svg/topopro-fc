@@ -1,0 +1,132 @@
+<div
+    class="dialog-backdrop"
+    *ngIf="visible"
+>
+
+    <div class="dialog">
+
+        <div class="dialog-header">
+
+            <h2>
+
+                {{ modoEdicion ? 'Editar publicación' : 'Nueva publicación' }}
+
+            </h2>
+
+            <button
+                class="btn-cerrar"
+                (click)="cerrarDialogo()"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <div class="dialog-body">
+
+            <div class="campo">
+
+                <label>
+
+                    Título
+
+                </label>
+
+                <input
+               type="text"
+               [(ngModel)]="modelo.titulo"
+               maxlength="100"
+            >
+
+            </div>
+
+            <div class="campo">
+
+                <label>
+
+                    Contenido
+
+                </label>
+
+                <textarea
+                 rows="7"
+                 [(ngModel)]="modelo.contenido"
+                 maxlength="1000"
+                ></textarea>
+
+            </div>
+
+            <div
+                class="campo"
+                *ngIf="esAdmin"
+            >
+
+                <label>
+
+                    Tipo
+
+                </label>
+
+                <select
+                    [(ngModel)]="modelo.tipo"
+                >
+
+                    <option value="COMUNIDAD">
+
+                        Comunidad
+
+                    </option>
+
+                    <option value="NOTICIA">
+
+                        Noticia
+
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="campo">
+
+                <label>
+
+                    Imagen (opcional)
+
+                </label>
+
+                <input
+                    type="text"
+                    [(ngModel)]="modelo.imagen"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+        </div>
+
+        <div class="dialog-footer">
+
+            <button
+                class="btn-secundario"
+                (click)="cerrarDialogo()"
+            >
+
+                Cancelar
+
+            </button>
+
+            <button
+                class="btn-principal"
+                (click)="guardarPublicacion()"
+            >
+
+                {{ modoEdicion ? 'Actualizar' : 'Publicar' }}
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
