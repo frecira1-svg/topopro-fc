@@ -25,6 +25,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     process.env.APP_URL,
+    'https://topopro-fc-web.onrender.com',
     'http://localhost:4200'
   ],
   credentials: true
