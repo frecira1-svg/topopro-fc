@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 const {
+  protegerRuta
+} = require('../middleware/authMiddleware');
+
+const {
+  verificarPermiso
+} = require('../middleware/permisoMiddleware');
+
+const {
   obtenerLevantamientos,
   obtenerLevantamiento,
   crearLevantamiento,
@@ -9,14 +17,62 @@ const {
   eliminarLevantamiento
 } = require('../controllers/levantamientoController');
 
-const { protegerRuta } = require('../middleware/authMiddleware');
+
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
 
 router.use(protegerRuta);
 
-router.get('/', obtenerLevantamientos);
-router.get('/:id', obtenerLevantamiento);
-router.post('/', crearLevantamiento);
-router.put('/:id', actualizarLevantamiento);
-router.delete('/:id', eliminarLevantamiento);
+
+// =====================================================
+// CONSULTAR
+// =====================================================
+
+router.get(
+  '/',
+  verificarPermiso('levantamientosVer'),
+  obtenerLevantamientos
+);
+
+router.get(
+  '/:id',
+  verificarPermiso('levantamientosVer'),
+  obtenerLevantamiento
+);
+
+
+// =====================================================
+// CREAR
+// =====================================================
+
+router.post(
+  '/',
+  verificarPermiso('levantamientosCrear'),
+  crearLevantamiento
+);
+
+
+// =====================================================
+// EDITAR
+// =====================================================
+
+router.put(
+  '/:id',
+  verificarPermiso('levantamientosEditar'),
+  actualizarLevantamiento
+);
+
+
+// =====================================================
+// ELIMINAR
+// =====================================================
+
+router.delete(
+  '/:id',
+  verificarPermiso('levantamientosEliminar'),
+  eliminarLevantamiento
+);
+
 
 module.exports = router;

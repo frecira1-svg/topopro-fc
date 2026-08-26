@@ -7,7 +7,8 @@ const {
   obtenerPerfil,
   actualizarPerfil,
   cambiarRol,
-  actualizarFoto
+  actualizarFoto,
+  cambiarPassword
 } = require('../services/authService');
 
 

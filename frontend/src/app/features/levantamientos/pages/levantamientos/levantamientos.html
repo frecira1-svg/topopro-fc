@@ -28,16 +28,14 @@
 
 
         <button
-            class="btn-nuevo"
-            type="button"
-            (click)="nuevoLevantamiento()"
-        >
-
-            <i class="pi pi-plus"></i>
-
-            Nuevo Levantamiento
-
-        </button>
+  *ngIf="puedeCrear"
+  class="btn-nuevo"
+  type="button"
+  (click)="nuevoLevantamiento()"
+>
+  <span>+</span>
+  Nuevo Levantamiento
+</button>
 
     </section>
 
@@ -380,7 +378,18 @@
 
     </div>
 
+<div
+  *ngIf="!cargandoPermisos && !puedeVer"
+  class="sin-permiso"
+>
+  <i class="pi pi-lock"></i>
 
+  <h3>Acceso restringido</h3>
+
+  <p>
+    No tienes permiso para consultar levantamientos.
+  </p>
+</div>
 
     <!-- ==========================================
          TABLA
@@ -595,35 +604,25 @@
                         <td class="acciones-tabla">
 
                             <button
-                                type="button"
-                                class="btn-editar"
-                                title="Editar levantamiento"
-                                (click)="
-                                    editarLevantamiento(
-                                        levantamiento
-                                    )
-                                "
-                            >
-
-                                <i class="pi pi-pencil"></i>
-
-                            </button>
+  *ngIf="puedeEditar"
+  type="button"
+  class="btn-editar"
+  title="Editar levantamiento"
+  (click)="editarLevantamiento(levantamiento)"
+>
+  <i class="pi pi-pencil"></i>
+</button>
 
 
                             <button
-                                type="button"
-                                class="btn-eliminar"
-                                title="Eliminar levantamiento"
-                                (click)="
-                                    eliminarLevantamiento(
-                                        levantamiento
-                                    )
-                                "
-                            >
-
-                                <i class="pi pi-trash"></i>
-
-                            </button>
+  *ngIf="puedeEliminar"
+  type="button"
+  class="btn-eliminar"
+  title="Eliminar levantamiento"
+  (click)="eliminarLevantamiento(levantamiento)"
+>
+  <i class="pi pi-trash"></i>
+</button>
 
                         </td>
 

@@ -58,11 +58,13 @@ export class Mapas implements AfterViewInit, OnDestroy {
   // ==========================================
 
   ngAfterViewInit(): void {
-
     this.inicializarMapa();
-
     this.cargarDatos();
-
+    setTimeout(() => {
+      if (this.mapa) {
+        this.mapa.invalidateSize();
+      }
+    }, 300);
   }
 
 
@@ -292,114 +294,119 @@ L.Marker.prototype.options.icon = iconDefault;
   }
 
 
-  // ==========================================
-  // AGREGAR PUNTOS
-  // ==========================================
+ // ==========================================
+// AGREGAR PUNTOS
+// ==========================================
 
-  private agregarPuntosAlMapa(): void {
+private agregarPuntosAlMapa(): void {
 
-    for (const punto of this.puntos) {
+  for (const punto of this.puntos) {
 
-      if (
-        punto.latitud == null ||
-        punto.longitud == null
-      ) {
+    if (
+      punto.latitud == null ||
+      punto.longitud == null
+    ) {
+      continue;
+    }
 
-        continue;
 
+    const marker = L.circleMarker(
+
+      [
+        punto.latitud,
+        punto.longitud
+      ],
+
+      {
+        radius: 7,
+        fillOpacity: 0.85,
+        weight: 2
       }
 
-
-      const marker = L.circleMarker(
-
-        [
-
-          punto.latitud,
-
-          punto.longitud
-
-        ],
-
-        {
-
-          radius: 7,
-
-          fillOpacity: 0.85,
-
-          weight: 2
-
-        }
-
-      );
+    );
 
 
-      const nombreProyectoPunto =
-        this.proyectos.find(p => p.id === punto.proyectoId)?.nombre
-        || `Proyecto #${punto.proyectoId}`;
+    // ==========================================
+    // OBTENER NOMBRE DEL PROYECTO
+    // ==========================================
 
-      const contenido =
-
-        '<div style="min-width:240px">' +
-
-        '<strong>📍 Punto topográfico</strong>' +
-
-        '<br><br>' +
-
-        '<strong>Código:</strong><br>' +
-
-        this.escapeHtml(punto.codigo || '-') +
-
-        '<br><br>' +
-
-        '<strong>Descripción:</strong><br>' +
-
-        this.escapeHtml(punto.descripcion || '-') +
-
-        '<br><br>' +
-
-        '<strong>Norte:</strong><br>' +
-
-        this.escapeHtml(punto.norte) +
-
-        '<br><br>' +
-
-        '<strong>Este:</strong><br>' +
-
-        this.escapeHtml(punto.este) +
-
-        '<br><br>' +
-
-        '<strong>Elevación:</strong><br>' +
-
-        this.escapeHtml(punto.elevacion) +
-
-        ' m' +
-
-        '<br><br>' +
-
-        '<strong>Proyecto:</strong><br>' +
-
-        this.escapeHtml(nombreProyectoPunto) +
-
-        '</div>';
+    const nombreProyectoPunto =
+      this.proyectos.find(
+        p => p.id === punto.proyectoId
+      )?.nombre
+      || `Proyecto #${punto.proyectoId}`;
 
 
-      marker.bindPopup(contenido);
+    // ==========================================
+    // CONTENIDO DEL POPUP
+    // ==========================================
+
+    const contenido =
+
+      '<div style="min-width:240px">' +
+
+      '<strong>📍 Punto topográfico</strong>' +
+
+      '<br><br>' +
+
+      '<strong>Código:</strong><br>' +
+
+      this.escapeHtml(punto.codigo || '-') +
+
+      '<br><br>' +
+
+      '<strong>Descripción:</strong><br>' +
+
+      this.escapeHtml(punto.descripcion || '-') +
+
+      '<br><br>' +
+
+      '<strong>Norte:</strong><br>' +
+
+      this.escapeHtml(punto.norte) +
+
+      '<br><br>' +
+
+      '<strong>Este:</strong><br>' +
+
+      this.escapeHtml(punto.este) +
+
+      '<br><br>' +
+
+      '<strong>Elevación:</strong><br>' +
+
+      this.escapeHtml(punto.elevacion) +
+
+      ' m' +
+
+      '<br><br>' +
+
+      '<strong>Proyecto:</strong><br>' +
+
+      this.escapeHtml(nombreProyectoPunto) +
+
+      '</div>';
 
 
-      if (this.puntosVisibles) {
-
-        marker.addTo(this.mapa);
-
-      }
+    marker.bindPopup(contenido);
 
 
-      this.marcadoresPuntos.push(marker);
+    // ==========================================
+    // MOSTRAR EN EL MAPA
+    // ==========================================
+
+    if (this.puntosVisibles) {
+
+      marker.addTo(this.mapa);
 
     }
 
+
+    this.marcadoresPuntos.push(marker);
+
   }
 
+}
 
   // ==========================================
   // MOSTRAR / OCULTAR PROYECTOS
@@ -717,3 +724,4 @@ L.Marker.prototype.options.icon = iconDefault;
   }
 
 }
+

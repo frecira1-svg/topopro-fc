@@ -4,10 +4,15 @@
     box-sizing:border-box;
 }
 
-.layout{
+.layout {
+  display: flex;
+}
 
-    display:flex;
-
+.contenido {
+  flex: 1;
+  padding: 30px;
+  background: var(--color-fondo);
+  min-height: calc(100vh - 70px);
 }
 
 .contenido{

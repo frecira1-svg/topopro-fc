@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 const {
+  protegerRuta
+} = require('../middleware/authMiddleware');
+
+const {
+  verificarPermiso
+} = require('../middleware/permisoMiddleware');
+
+const {
   obtenerEquipos,
   obtenerEquipo,
   crearEquipo,
@@ -9,14 +17,62 @@ const {
   eliminarEquipo
 } = require('../controllers/equipoController');
 
-const { protegerRuta } = require('../middleware/authMiddleware');
+
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
 
 router.use(protegerRuta);
 
-router.get('/', obtenerEquipos);
-router.get('/:id', obtenerEquipo);
-router.post('/', crearEquipo);
-router.put('/:id', actualizarEquipo);
-router.delete('/:id', eliminarEquipo);
+
+// =====================================================
+// CONSULTAR
+// =====================================================
+
+router.get(
+  '/',
+  verificarPermiso('equiposVer'),
+  obtenerEquipos
+);
+
+router.get(
+  '/:id',
+  verificarPermiso('equiposVer'),
+  obtenerEquipo
+);
+
+
+// =====================================================
+// CREAR
+// =====================================================
+
+router.post(
+  '/',
+  verificarPermiso('equiposCrear'),
+  crearEquipo
+);
+
+
+// =====================================================
+// EDITAR
+// =====================================================
+
+router.put(
+  '/:id',
+  verificarPermiso('equiposEditar'),
+  actualizarEquipo
+);
+
+
+// =====================================================
+// ELIMINAR
+// =====================================================
+
+router.delete(
+  '/:id',
+  verificarPermiso('equiposEliminar'),
+  eliminarEquipo
+);
+
 
 module.exports = router;

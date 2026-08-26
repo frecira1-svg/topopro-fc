@@ -121,6 +121,132 @@ background: #198754;
 transform: translateX(21px);
 }
 
+.form-password {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  max-width: 320px;
+}
+
+.form-password input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-password button {
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #0d6efd;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.form-password button:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.form-password button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.permisos-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.permisos-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.permisos-selector label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.permisos-selector select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.permisos-cargando {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.permisos-tabla {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.permisos-modulo {
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.permisos-modulo strong {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.permisos-modulo label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.permisos-modulo input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.btn-guardar-permisos {
+  grid-column: 1 / -1;
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  background: #0d6efd;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-guardar-permisos:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.btn-guardar-permisos:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
 
 .configuracion-container {
@@ -129,6 +255,10 @@ padding: 20px;
 
 .config-content {
 grid-template-columns: 1fr;
+}
+
+.permisos-tabla {
+  grid-template-columns: 1fr;
 }
 
 }

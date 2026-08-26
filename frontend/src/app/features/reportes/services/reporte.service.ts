@@ -85,7 +85,7 @@ export class ReporteService {
   ): Observable<Blob> {
 
     return this.http.get(
-      `${this.apiUrl}/proyecto/${proyectoId}/pdf`,
+      `${this.apiUrl}/memoria-calculo/${proyectoId}/pdf`,
       {
         responseType: 'blob'
       }
@@ -103,7 +103,7 @@ export class ReporteService {
   ): Observable<Blob> {
 
     return this.http.get(
-      `${this.apiUrl}/proyecto/${proyectoId}/excel`,
+      `${this.apiUrl}/memoria-calculo/${proyectoId}/excel`,
       {
         responseType: 'blob'
       }

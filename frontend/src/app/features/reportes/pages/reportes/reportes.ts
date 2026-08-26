@@ -1,4 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectorRef
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
@@ -10,9 +16,19 @@ import { LevantamientosService } from '../../../levantamientos/services/levantam
 
 import { Equipo } from '../../../equipos/models/equipo';
 import { EquiposService } from '../../../equipos/services/equipos';
+
 import { environment } from '../../../../environments/environment';
 
+import { AuthService } from '../../../../core/services/auth.service';
+
+import {
+  PermisoService,
+  PermisosUsuario
+} from '../../../../core/services/permiso.service';
+
+
 interface ReporteProyecto {
+
   proyecto: {
     id: number;
     nombre: string;
@@ -53,7 +69,9 @@ interface ReporteProyecto {
   archivos: ArchivoReporte[];
 }
 
+
 interface PuntoReporte {
+
   id: number;
   codigo: string;
   norte: number;
@@ -68,14 +86,18 @@ interface PuntoReporte {
   latitud: number | null;
   longitud: number | null;
   createdAt: string;
+
 }
 
+
 interface LevantamientoReporte {
+
   id: number;
   fecha: string;
   descripcion: string | null;
   observaciones: string | null;
   estado: string;
+
   equipo: {
     id: number;
     nombre: string;
@@ -83,15 +105,19 @@ interface LevantamientoReporte {
     marca: string | null;
     modelo: string | null;
   } | null;
+
   responsable: {
     id: number;
     nombre: string;
     apellido: string;
     correo: string;
   };
+
 }
 
+
 interface EquipoReporte {
+
   id: number;
   nombre: string;
   tipo: string;
@@ -100,15 +126,20 @@ interface EquipoReporte {
   numeroSerie: string | null;
   estado: string;
   fechaCompra: string | null;
+
 }
 
+
 interface ArchivoReporte {
+
   id: number;
   nombre: string;
   url: string;
   tipo: string;
   createdAt: string;
+
 }
+
 
 @Component({
   selector: 'app-reportes',
@@ -119,45 +150,186 @@ interface ArchivoReporte {
 })
 export class Reportes implements OnInit {
 
-  private proyectoService = inject(ProyectoService);
-  private levantamientosService = inject(LevantamientosService);
-  private equiposService = inject(EquiposService);
-  private http = inject(HttpClient);
+  private proyectoService =
+    inject(ProyectoService);
+
+  private levantamientosService =
+    inject(LevantamientosService);
+
+  private equiposService =
+    inject(EquiposService);
+
+  private http =
+    inject(HttpClient);
+
+  private authService =
+    inject(AuthService);
+
+  private permisoService =
+    inject(PermisoService);
+
+  private cdr =
+    inject(ChangeDetectorRef);
+
 
   private readonly REPORTES_URL =
-  `${environment.apiUrl}/reportes`;
+    `${environment.apiUrl}/reportes`;
+
+
+  // =====================================================
+  // DATOS
+  // =====================================================
 
   proyectos: Proyecto[] = [];
+
   levantamientos: Levantamiento[] = [];
+
   equipos: Equipo[] = [];
 
   reporteProyecto: ReporteProyecto | null = null;
 
   proyectoSeleccionadoId: number | null = null;
 
+
+  // =====================================================
+  // ESTADOS
+  // =====================================================
+
   cargando = true;
+
   cargandoReporte = false;
+
+  cargandoPermisos = true;
+
+  puedeVer = false;
+
+  permisos: PermisosUsuario | null = null;
 
   error = '';
 
   descargando: number | null = null;
 
+
+  // =====================================================
+  // INICIO
+  // =====================================================
+
   ngOnInit(): void {
-    this.cargarDatos();
+
+    this.cargarPermisos();
+
   }
 
-  // ==========================================
+
+  // =====================================================
+  // CARGAR PERMISOS
+  // =====================================================
+
+  cargarPermisos(): void {
+
+    const usuario =
+      this.authService.usuarioActual();
+
+
+    if (!usuario) {
+
+      this.cargandoPermisos = false;
+      this.puedeVer = false;
+
+      return;
+    }
+
+
+    // -------------------------------------------------
+    // ADMIN → ACCESO TOTAL
+    // -------------------------------------------------
+
+    if (usuario.rol === 'ADMIN') {
+
+      this.puedeVer = true;
+
+      this.cargandoPermisos = false;
+
+      this.cargarDatos();
+
+      return;
+    }
+
+
+    // -------------------------------------------------
+    // USUARIO → SUS PROPIOS PERMISOS
+    // -------------------------------------------------
+
+    this.permisoService
+      .obtenerMisPermisos()
+      .subscribe({
+
+        next: (permisos) => {
+
+          this.permisos = permisos;
+
+          this.puedeVer =
+            permisos.reportesVer;
+
+          this.cargandoPermisos = false;
+
+
+          if (this.puedeVer) {
+
+            this.cargarDatos();
+
+          }
+
+
+          this.cdr.detectChanges();
+
+        },
+
+        error: (error: any) => {
+
+          console.error(
+            'Error cargando permisos de reportes:',
+            error
+          );
+
+          this.puedeVer = false;
+
+          this.cargandoPermisos = false;
+
+          this.error =
+            error?.error?.error ||
+            'No se pudieron cargar los permisos.';
+
+          this.cdr.detectChanges();
+
+        }
+
+      });
+
+  }
+
+
+  // =====================================================
   // CARGAR INFORMACIÓN GENERAL
-  // ==========================================
+  // =====================================================
 
   cargarDatos(): void {
+
+    if (!this.puedeVer) {
+      return;
+    }
+
 
     this.cargando = true;
     this.error = '';
 
+
     let proyectosCargados = false;
+
     let levantamientosCargados = false;
+
     let equiposCargados = false;
+
 
     const comprobarCarga = () => {
 
@@ -166,40 +338,56 @@ export class Reportes implements OnInit {
         levantamientosCargados &&
         equiposCargados
       ) {
+
         this.cargando = false;
+
+        this.cdr.detectChanges();
+
       }
 
     };
 
-    this.proyectoService.obtenerTodos().subscribe({
 
-      next: (data) => {
+    // =================================================
+    // PROYECTOS
+    // =================================================
 
-        this.proyectos = data;
+    this.proyectoService
+      .obtenerTodos()
+      .subscribe({
 
-        proyectosCargados = true;
+        next: (data) => {
 
-        comprobarCarga();
+          this.proyectos = data;
 
-      },
+          proyectosCargados = true;
 
-      error: (error) => {
+          comprobarCarga();
 
-        console.error(
-          'Error cargando proyectos:',
-          error
-        );
+        },
 
-        this.error =
-          'No se pudieron cargar los proyectos';
+        error: (error) => {
 
-        proyectosCargados = true;
+          console.error(
+            'Error cargando proyectos:',
+            error
+          );
 
-        comprobarCarga();
+          this.error =
+            'No se pudieron cargar los proyectos';
 
-      }
+          proyectosCargados = true;
 
-    });
+          comprobarCarga();
+
+        }
+
+      });
+
+
+    // =================================================
+    // LEVANTAMIENTOS
+    // =================================================
 
     this.levantamientosService
       .obtenerLevantamientos()
@@ -233,56 +421,78 @@ export class Reportes implements OnInit {
 
       });
 
-    this.equiposService.obtenerEquipos().subscribe({
 
-      next: (data) => {
+    // =================================================
+    // EQUIPOS
+    // =================================================
 
-        this.equipos = data;
+    this.equiposService
+      .obtenerEquipos()
+      .subscribe({
 
-        equiposCargados = true;
+        next: (data) => {
 
-        comprobarCarga();
+          this.equipos = data;
 
-      },
+          equiposCargados = true;
 
-      error: (error) => {
+          comprobarCarga();
 
-        console.error(
-          'Error cargando equipos:',
-          error
-        );
+        },
 
-        this.error =
-          'No se pudieron cargar los equipos';
+        error: (error) => {
 
-        equiposCargados = true;
+          console.error(
+            'Error cargando equipos:',
+            error
+          );
 
-        comprobarCarga();
+          this.error =
+            'No se pudieron cargar los equipos';
 
-      }
+          equiposCargados = true;
 
-    });
+          comprobarCarga();
+
+        }
+
+      });
 
   }
 
-  // ==========================================
-  // REPORTE TÉCNICO DEL PROYECTO
-  // ==========================================
+
+  // =====================================================
+  // SELECCIONAR PROYECTO
+  // =====================================================
 
   seleccionarProyecto(
     proyectoId: number | string
   ): void {
 
-    const id = Number(proyectoId);
+    if (!this.puedeVer) {
+
+      this.error =
+        'No tienes permiso para consultar reportes.';
+
+      return;
+
+    }
+
+
+    const id =
+      Number(proyectoId);
+
 
     if (!id) {
 
       this.proyectoSeleccionadoId = null;
+
       this.reporteProyecto = null;
 
       return;
 
     }
+
 
     this.proyectoSeleccionadoId = id;
 
@@ -290,42 +500,76 @@ export class Reportes implements OnInit {
 
   }
 
-  cargarReporteProyecto(proyectoId: number): void {
+
+  // =====================================================
+  // CARGAR REPORTE TÉCNICO
+  // =====================================================
+
+  cargarReporteProyecto(
+    proyectoId: number
+  ): void {
+
+    if (!this.puedeVer) {
+
+      return;
+
+    }
+
 
     this.cargandoReporte = true;
+
     this.error = '';
 
-    const headers = new HttpHeaders({
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache'
-    });
+
+    const headers =
+      new HttpHeaders({
+
+        'Cache-Control':
+          'no-cache, no-store, must-revalidate',
+
+        'Pragma':
+          'no-cache'
+
+      });
+
 
     this.http
       .get<ReporteProyecto>(
         `${this.REPORTES_URL}/proyecto/${proyectoId}`,
-        { headers }
+        {
+          headers
+        }
       )
       .subscribe({
 
         next: (reporte) => {
 
-          // Ignorar respuestas de peticiones obsoletas
-          // (el usuario ya seleccionó otro proyecto)
-          if (this.proyectoSeleccionadoId !== proyectoId) {
+          if (
+            this.proyectoSeleccionadoId !== proyectoId
+          ) {
+
             return;
+
           }
 
-          this.reporteProyecto = reporte;
+          this.reporteProyecto =
+            reporte;
 
-          this.cargandoReporte = false;
+          this.cargandoReporte =
+            false;
+
+          this.cdr.detectChanges();
 
         },
 
         error: (error) => {
 
-          // Ignorar respuestas de peticiones obsoletas
-          if (this.proyectoSeleccionadoId !== proyectoId) {
+          if (
+            this.proyectoSeleccionadoId !== proyectoId
+          ) {
+
             return;
+
           }
 
           console.error(
@@ -339,7 +583,10 @@ export class Reportes implements OnInit {
             error?.error?.error ||
             'No se pudo cargar el reporte técnico';
 
-          this.cargandoReporte = false;
+          this.cargandoReporte =
+            false;
+
+          this.cdr.detectChanges();
 
         }
 
@@ -347,21 +594,31 @@ export class Reportes implements OnInit {
 
   }
 
-  // ==========================================
-  // ESTADÍSTICAS GENERALES
-  // ==========================================
+
+  // =====================================================
+  // ESTADÍSTICAS
+  // =====================================================
 
   get totalProyectos(): number {
+
     return this.proyectos.length;
+
   }
+
 
   get totalLevantamientos(): number {
+
     return this.levantamientos.length;
+
   }
 
+
   get totalEquipos(): number {
+
     return this.equipos.length;
+
   }
+
 
   get planificados(): number {
 
@@ -371,6 +628,7 @@ export class Reportes implements OnInit {
 
   }
 
+
   get enCampo(): number {
 
     return this.levantamientos.filter(
@@ -378,6 +636,7 @@ export class Reportes implements OnInit {
     ).length;
 
   }
+
 
   get completados(): number {
 
@@ -387,11 +646,14 @@ export class Reportes implements OnInit {
 
   }
 
-  // ==========================================
-  // UTILIDADES
-  // ==========================================
 
-  nombreProyecto(id: number): string {
+  // =====================================================
+  // UTILIDADES
+  // =====================================================
+
+  nombreProyecto(
+    id: number
+  ): string {
 
     return this.proyectos.find(
       p => p.id === id
@@ -399,12 +661,15 @@ export class Reportes implements OnInit {
 
   }
 
+
   nombreEquipo(
     id: number | null | undefined
   ): string {
 
     if (!id) {
+
       return '-';
+
     }
 
     return this.equipos.find(
@@ -412,6 +677,7 @@ export class Reportes implements OnInit {
     )?.nombre || '-';
 
   }
+
 
   nombreResponsable(
     levantamiento: Levantamiento
@@ -427,6 +693,7 @@ export class Reportes implements OnInit {
 
   }
 
+
   formatearNumero(
     valor: number | null | undefined,
     decimales = 3
@@ -435,22 +702,42 @@ export class Reportes implements OnInit {
     if (
       valor === null ||
       valor === undefined ||
-      !Number.isFinite(Number(valor))
+      !Number.isFinite(
+        Number(valor)
+      )
     ) {
+
       return '-';
+
     }
 
-    return Number(valor).toFixed(decimales);
+
+    return Number(valor)
+      .toFixed(decimales);
 
   }
 
-  // ==========================================
+
+  // =====================================================
   // DESCARGAR MEMORIA PDF
-  // ==========================================
+  // =====================================================
 
   descargarMemoriaPDF(
-    proyecto: { id: number; nombre: string }
+    proyecto: {
+      id: number;
+      nombre: string;
+    }
   ): void {
+
+    if (!this.puedeVer) {
+
+      this.error =
+        'No tienes permiso para generar reportes.';
+
+      return;
+
+    }
+
 
     this.descargarArchivo(
 
@@ -464,13 +751,27 @@ export class Reportes implements OnInit {
 
   }
 
-  // ==========================================
+
+  // =====================================================
   // DESCARGAR MEMORIA EXCEL
-  // ==========================================
+  // =====================================================
 
   descargarMemoriaExcel(
-    proyecto: { id: number; nombre: string }
+    proyecto: {
+      id: number;
+      nombre: string;
+    }
   ): void {
+
+    if (!this.puedeVer) {
+
+      this.error =
+        'No tienes permiso para generar reportes.';
+
+      return;
+
+    }
+
 
     this.descargarArchivo(
 
@@ -484,9 +785,10 @@ export class Reportes implements OnInit {
 
   }
 
-  // ==========================================
+
+  // =====================================================
   // DESCARGAR ARCHIVO
-  // ==========================================
+  // =====================================================
 
   private descargarArchivo(
     url: string,
@@ -494,8 +796,18 @@ export class Reportes implements OnInit {
     proyectoId: number
   ): void {
 
-    this.descargando = proyectoId;
+    if (!this.puedeVer) {
+
+      return;
+
+    }
+
+
+    this.descargando =
+      proyectoId;
+
     this.error = '';
+
 
     this.http
       .get(url, {
@@ -506,13 +818,18 @@ export class Reportes implements OnInit {
         next: (blob: Blob) => {
 
           const urlBlob =
-            window.URL.createObjectURL(blob);
+            window.URL.createObjectURL(
+              blob
+            );
 
           const enlace =
             document.createElement('a');
 
-          enlace.href = urlBlob;
-          enlace.download = nombreArchivo;
+          enlace.href =
+            urlBlob;
+
+          enlace.download =
+            nombreArchivo;
 
           enlace.click();
 
@@ -520,7 +837,8 @@ export class Reportes implements OnInit {
             urlBlob
           );
 
-          this.descargando = null;
+          this.descargando =
+            null;
 
         },
 
@@ -532,9 +850,11 @@ export class Reportes implements OnInit {
           );
 
           this.error =
+            error?.error?.error ||
             'No se pudo generar el reporte';
 
-          this.descargando = null;
+          this.descargando =
+            null;
 
         }
 

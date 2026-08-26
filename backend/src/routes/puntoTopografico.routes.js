@@ -2,61 +2,109 @@ const express = require('express');
 const router = express.Router();
 
 const {
-
   crear,
-
   listar,
-
   listarPorProyecto,
-
   obtener,
-
   actualizar,
-
   eliminar,
-
   listarCercanos,
-
   importarCSV,
-
   uploadCSV
-
 } = require('../controllers/puntoTopografico.controller');
 
 const {
-
   protegerRuta
-
 } = require('../middleware/authMiddleware');
+
+const {
+  verificarPermiso
+} = require('../middleware/permisoMiddleware');
 
 
 // ===============================
 // PUNTOS TOPOGRÁFICOS
 // ===============================
 
-// Crear punto
-router.post('/', protegerRuta, crear);
+// Todas las rutas requieren autenticación
+router.use(protegerRuta);
+
+
+// ===============================
+// CONSULTAR
+// ===============================
 
 // Listar todos los puntos
-router.get('/', protegerRuta, listar);
+router.get(
+  '/',
+  verificarPermiso('proyectosVer'),
+  listar
+);
 
-// Puntos cercanos (consulta espacial)
-router.get('/cercanos', protegerRuta, listarCercanos);
+// Puntos cercanos — utilizados por Mapas
+router.get(
+  '/cercanos',
+  verificarPermiso('proyectosVer'),
+  listarCercanos
+);
 
-// Listar puntos de un proyecto específico
-router.get('/proyecto/:proyectoId', protegerRuta, listarPorProyecto);
-
-// Importar puntos desde CSV
-router.post('/importar/:proyectoId', protegerRuta, uploadCSV.single('archivo'), importarCSV);
+// Listar puntos de un proyecto
+router.get(
+  '/proyecto/:proyectoId',
+  verificarPermiso('proyectosVer'),
+  listarPorProyecto
+);
 
 // Obtener un punto por ID
-router.get('/:id', protegerRuta, obtener);
+router.get(
+  '/:id',
+  verificarPermiso('proyectosVer'),
+  obtener
+);
 
-// Actualizar un punto
-router.put('/:id', protegerRuta, actualizar);
 
-// Eliminar un punto
-router.delete('/:id', protegerRuta, eliminar);
+// ===============================
+// CREAR
+// ===============================
+
+// Crear punto
+router.post(
+  '/',
+  verificarPermiso('proyectosCrear'),
+  crear
+);
+
+// Importar puntos desde CSV
+router.post(
+  '/importar/:proyectoId',
+  verificarPermiso('proyectosCrear'),
+  uploadCSV.single('archivo'),
+  importarCSV
+);
+
+
+// ===============================
+// EDITAR
+// ===============================
+
+// Actualizar punto
+router.put(
+  '/:id',
+  verificarPermiso('proyectosEditar'),
+  actualizar
+);
+
+
+// ===============================
+// ELIMINAR
+// ===============================
+
+// Eliminar punto
+router.delete(
+  '/:id',
+  verificarPermiso('proyectosEliminar'),
+  eliminar
+);
 
 
 module.exports = router;

@@ -5,6 +5,26 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
 @import "primeicons/primeicons.css";
 
+/* ===========================
+   VARIABLES DE TEMA
+=========================== */
+
+:root {
+  --color-fondo: #f5f7fa;
+  --color-fondo-tarjeta: #ffffff;
+  --color-texto: #172033;
+  --color-texto-secundario: #6b7280;
+  --color-borde: #e8ebf0;
+}
+
+html[data-tema="oscuro"] {
+  --color-fondo: #0f1521;
+  --color-fondo-tarjeta: #1a2233;
+  --color-texto: #e8ebf0;
+  --color-texto-secundario: #9aa3b5;
+  --color-borde: #2a3346;
+}
+
 /* Reset */
 
 *{
@@ -20,7 +40,10 @@ body{
 
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
-    background:#f5f7fa;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+
+    transition: background 0.2s ease, color 0.2s ease;
 
 }
 

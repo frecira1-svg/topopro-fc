@@ -2,75 +2,165 @@
 
     <ul>
 
+        <!-- ============================================== -->
+        <!-- DASHBOARD -->
+        <!-- ============================================== -->
+
         <li>
+
             <a
                 routerLink="/dashboard"
                 routerLinkActive="activo"
-                [routerLinkActiveOptions]="{ exact: true }">
+                [routerLinkActiveOptions]="{ exact: true }"
+            >
                 📊 Dashboard
             </a>
+
         </li>
 
-        <li>
+
+        <!-- ============================================== -->
+        <!-- PROYECTOS -->
+        <!-- ============================================== -->
+
+        <li
+            *ngIf="!cargandoPermisos && puedeVerProyectos"
+        >
+
             <a
                 routerLink="/proyectos"
-                routerLinkActive="activo">
+                routerLinkActive="activo"
+            >
                 📁 Proyectos
             </a>
+
         </li>
-<li>
-    <a
-        routerLink="/mapas"
-        routerLinkActive="activo">
-        🗺️ Mapas
-    </a>
-</li>
+
+
+        <!-- ============================================== -->
+        <!-- MAPAS -->
+        <!-- ============================================== -->
+
         <li>
+
+            <a
+                routerLink="/mapas"
+                routerLinkActive="activo"
+            >
+                🗺️ Mapas
+            </a>
+
+        </li>
+
+
+        <!-- ============================================== -->
+        <!-- CLIENTES -->
+        <!-- ============================================== -->
+
+        <li>
+
             <a
                 routerLink="/clientes"
-                routerLinkActive="activo">
+                routerLinkActive="activo"
+            >
                 👥 Clientes
             </a>
+
         </li>
 
+
+        <!-- ============================================== -->
+        <!-- PUBLICACIONES -->
+        <!-- ============================================== -->
+
         <li>
+
             <a
                 routerLink="/publicaciones"
-                routerLinkActive="activo">
+                routerLinkActive="activo"
+            >
                 📰 Publicaciones
             </a>
+
         </li>
 
-        <li>
+
+        <!-- ============================================== -->
+        <!-- LEVANTAMIENTOS -->
+        <!-- ============================================== -->
+
+        <li
+            *ngIf="
+                !cargandoPermisos &&
+                puedeVerLevantamientos
+            "
+        >
+
             <a
                 routerLink="/levantamientos"
-                routerLinkActive="activo">
-                📍 Levantamientos
+                routerLinkActive="activo"
+            >
+                📋 Levantamientos
             </a>
+
         </li>
 
-        <li>
+
+        <!-- ============================================== -->
+        <!-- EQUIPOS -->
+        <!-- ============================================== -->
+
+        <li
+            *ngIf="
+                !cargandoPermisos &&
+                puedeVerEquipos
+            "
+        >
+
             <a
                 routerLink="/equipos"
-                routerLinkActive="activo">
+                routerLinkActive="activo"
+            >
                 📡 Equipos
             </a>
+
         </li>
 
-        <li>
+
+        <!-- ============================================== -->
+        <!-- REPORTES -->
+        <!-- ============================================== -->
+
+        <li
+            *ngIf="
+                !cargandoPermisos &&
+                puedeVerReportes
+            "
+        >
+
             <a
                 routerLink="/reportes"
-                routerLinkActive="activo">
+                routerLinkActive="activo"
+            >
                 📄 Reportes
             </a>
+
         </li>
 
+
+        <!-- ============================================== -->
+        <!-- CONFIGURACIÓN -->
+        <!-- ============================================== -->
+
         <li>
+
             <a
                 routerLink="/configuracion"
-                routerLinkActive="activo">
-                ⚙ Configuración
+                routerLinkActive="activo"
+            >
+                ⚙️ Configuración
             </a>
+
         </li>
 
     </ul>

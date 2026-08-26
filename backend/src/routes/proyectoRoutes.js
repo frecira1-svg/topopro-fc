@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { protegerRuta } = require('../middleware/authMiddleware');
+
+const {
+  protegerRuta
+} = require('../middleware/authMiddleware');
+
+const {
+  verificarPermiso
+} = require('../middleware/permisoMiddleware');
 
 const {
   obtenerProyectos,
@@ -11,13 +18,68 @@ const {
   proyectosCercanosController
 } = require('../controllers/proyectoController');
 
+
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
+
 router.use(protegerRuta);
 
-router.get('/cercanos', proyectosCercanosController);
-router.get('/', obtenerProyectos);
-router.get('/:id', obtenerProyecto);
-router.post('/', crearProyecto);
-router.put('/:id', actualizarProyecto);
-router.delete('/:id', eliminarProyecto);
+
+// =====================================================
+// CONSULTAR PROYECTOS
+// =====================================================
+
+router.get(
+  '/cercanos',
+  verificarPermiso('proyectosVer'),
+  proyectosCercanosController
+);
+
+router.get(
+  '/',
+  verificarPermiso('proyectosVer'),
+  obtenerProyectos
+);
+
+router.get(
+  '/:id',
+  verificarPermiso('proyectosVer'),
+  obtenerProyecto
+);
+
+
+// =====================================================
+// CREAR
+// =====================================================
+
+router.post(
+  '/',
+  verificarPermiso('proyectosCrear'),
+  crearProyecto
+);
+
+
+// =====================================================
+// EDITAR
+// =====================================================
+
+router.put(
+  '/:id',
+  verificarPermiso('proyectosEditar'),
+  actualizarProyecto
+);
+
+
+// =====================================================
+// ELIMINAR
+// =====================================================
+
+router.delete(
+  '/:id',
+  verificarPermiso('proyectosEliminar'),
+  eliminarProyecto
+);
+
 
 module.exports = router;

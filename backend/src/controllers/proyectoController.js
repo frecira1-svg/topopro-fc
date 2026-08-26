@@ -93,9 +93,20 @@ const obtenerProyecto = async (req, res) => {
 
       },
 
-      include: {
-        usuario: true
-      }
+      // ✅ AHORA (sanitizado)
+include: {
+  usuario: {
+    select: {
+      id: true,
+      nombre: true,
+      apellido: true,
+      correo: true,
+      profesion: true,
+      foto: true,
+      rol: true
+    }
+  }
+}
 
     });
 

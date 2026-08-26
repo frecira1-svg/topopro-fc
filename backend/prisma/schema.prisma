@@ -48,10 +48,40 @@ model Usuario {
   equipos                  Equipo[]
   levantamientos           Levantamiento[]
   passwordResetTokens      PasswordResetToken[]
+  permisos                 PermisoUsuario?
   proyectos                Proyecto[]
   publicaciones            Publicacion[]
 
   @@map("usuarios")
+}
+
+model PermisoUsuario {
+  id                     Int      @id @default(autoincrement())
+  usuarioId              Int      @unique
+  proyectosVer           Boolean  @default(true)
+  proyectosCrear         Boolean  @default(true)
+  proyectosEditar        Boolean  @default(true)
+  proyectosEliminar      Boolean  @default(true)
+
+  mapasVer               Boolean  @default(true)
+
+  levantamientosVer      Boolean  @default(true)
+  levantamientosCrear    Boolean  @default(true)
+  levantamientosEditar   Boolean  @default(true)
+  levantamientosEliminar Boolean  @default(true)
+  equiposVer             Boolean  @default(true)
+  equiposCrear           Boolean  @default(true)
+  equiposEditar          Boolean  @default(true)
+  equiposEliminar        Boolean  @default(true)
+  reportesVer            Boolean  @default(true)
+  reportesCrear          Boolean  @default(true)
+  reportesEditar         Boolean  @default(true)
+  reportesEliminar       Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime
+  usuario                Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("permisos_usuario")
 }
 
 model Proyecto {
@@ -115,15 +145,17 @@ model PasswordResetToken {
 }
 
 model Archivo {
-  id         Int               @id @default(autoincrement())
-  nombre     String
-  url        String
-  tipo       String
-  proyectoId Int?
-  puntoId    Int?
-  createdAt  DateTime          @default(now())
-  proyecto   Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  punto      PuntoTopografico? @relation(fields: [puntoId], references: [id], onDelete: Cascade)
+  id           Int               @id @default(autoincrement())
+  nombre       String
+  url          String
+  tipo         String
+  proyectoId   Int?
+  puntoId      Int?
+  createdAt    DateTime          @default(now())
+  publicId     String?
+  resourceType String?
+  proyecto     Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  punto        PuntoTopografico? @relation(fields: [puntoId], references: [id], onDelete: Cascade)
 
   @@map("archivos")
 }

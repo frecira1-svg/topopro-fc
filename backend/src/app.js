@@ -14,6 +14,7 @@ const publicacionRoutes = require('./routes/publicacion.routes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const equipoRoutes = require('./routes/equipoRoutes');
 const reporteRoutes = require('./routes/reporteRoutes');
+const permisoRoutes = require('./routes/permiso.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 
@@ -52,6 +53,7 @@ app.use('/api/publicaciones', publicacionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/equipos', equipoRoutes);
 app.use('/api/reportes', reporteRoutes);
+app.use('/api/permisos', permisoRoutes);
 
 app.get('/', (req, res) => {
   res.json({
