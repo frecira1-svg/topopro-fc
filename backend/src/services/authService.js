@@ -128,10 +128,23 @@ async function loginUsuario({
 
 
   const usuario = await prisma.usuario.findUnique({
-    where: {
-      correo
-    }
-  });
+  where: {
+    correo
+  }
+});
+
+const diagnosticoDB = await prisma.$queryRaw`
+  SELECT
+    current_database() AS database,
+    current_schema() AS schema,
+    current_user AS usuario_db,
+    inet_server_addr()::text AS servidor_db,
+    inet_server_port() AS puerto_db
+`;
+
+console.log('========== DIAGNOSTICO BASE DE DATOS ==========');
+console.log(diagnosticoDB);
+console.log('===============================================');
 
 console.log('========== DEBUG LOGIN ==========');
 console.log('Correo recibido:', correo);
