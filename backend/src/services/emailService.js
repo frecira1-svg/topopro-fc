@@ -17,7 +17,7 @@ async function enviarCorreoVerificacion(
 ) {
 
   const enlace =
-    `${process.env.API_URL}/api/auth/verificar-email?token=${token}`;
+  `https://topopro-fc-api.onrender.com/api/auth/verificar-email?token=${token}`;
 
   const { data, error } = await resend.emails.send({
 
