@@ -146,6 +146,20 @@ console.log('========== DIAGNOSTICO BASE DE DATOS ==========');
 console.log(diagnosticoDB);
 console.log('===============================================');
 
+const verificacionDirecta = await prisma.$queryRaw`
+  SELECT
+    id,
+    correo,
+    "emailVerificado",
+    "activo"
+  FROM "usuarios"
+  WHERE correo = ${correo}
+`;
+
+console.log('========== CONSULTA DIRECTA ==========');
+console.log(verificacionDirecta);
+console.log('=======================================');
+
 console.log('========== DEBUG LOGIN ==========');
 console.log('Correo recibido:', correo);
 console.log('Usuario ID:', usuario?.id);
