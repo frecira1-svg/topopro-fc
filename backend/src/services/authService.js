@@ -133,6 +133,14 @@ async function loginUsuario({
     }
   });
 
+console.log('========== DEBUG LOGIN ==========');
+console.log('Correo recibido:', correo);
+console.log('Usuario ID:', usuario?.id);
+console.log('Activo:', usuario?.activo);
+console.log('Email verificado:', usuario?.emailVerificado);
+console.log('Tipo emailVerificado:', typeof usuario?.emailVerificado);
+console.log('=================================');
+
 
   if (!usuario) {
 
