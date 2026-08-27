@@ -450,13 +450,11 @@ async function cambiarPassword(
 
 }
 
-
 // ===============================
 // VERIFICAR CORREO ELECTRÓNICO
 // ===============================
 
 async function verificarEmail(token) {
-
 
   const usuario =
     await prisma.usuario.findFirst({
@@ -464,8 +462,6 @@ async function verificarEmail(token) {
         emailVerificationToken: token
       }
     });
-
-
 
   if (!usuario) {
 
@@ -477,8 +473,6 @@ async function verificarEmail(token) {
 
     throw error;
   }
-
-
 
   if (
     !usuario.emailVerificationExpires ||
@@ -494,8 +488,6 @@ async function verificarEmail(token) {
     throw error;
   }
 
-
-
   await prisma.usuario.update({
 
     where: {
@@ -509,19 +501,78 @@ async function verificarEmail(token) {
       emailVerificationToken: null,
 
       emailVerificationExpires: null
+
     }
 
   });
 
-
-
   return {
+
     mensaje:
       "Correo verificado correctamente"
+
   };
 
 }
 
+// ===============================
+// REENVIAR VERIFICACIÓN DE CORREO
+// ===============================
+
+async function reenviarVerificacion(correo) {
+
+  const usuario = await prisma.usuario.findUnique({
+    where: {
+      correo
+    }
+  });
+
+  if (!usuario) {
+    const error = new Error(
+      "No existe un usuario con ese correo"
+    );
+
+    error.status = 404;
+    throw error;
+  }
+
+  if (usuario.emailVerificado) {
+    const error = new Error(
+      "El correo electrónico ya está verificado"
+    );
+
+    error.status = 400;
+    throw error;
+  }
+
+  const emailVerificationToken =
+    crypto.randomBytes(32).toString('hex');
+
+  const emailVerificationExpires =
+    new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+
+  await prisma.usuario.update({
+    where: {
+      id: usuario.id
+    },
+    data: {
+      emailVerificationToken,
+      emailVerificationExpires
+    }
+  });
+
+  await enviarCorreoVerificacion(
+    usuario.correo,
+    emailVerificationToken,
+    usuario.nombre
+  );
+
+  return {
+    mensaje: "Correo de verificación enviado correctamente"
+  };
+}
 
 
 // ===============================
@@ -691,6 +742,8 @@ module.exports = {
   restablecerPassword,
 
   verificarEmail,
+
+  reenviarVerificacion,
 
   obtenerPerfil,
 

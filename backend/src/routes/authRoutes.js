@@ -8,6 +8,7 @@ const {
   recuperarPassword,
   restablecerPasswordController,
   verificarEmailController,
+  reenviarVerificacionController,
   perfil,
   actualizarPerfilController,
   cambiarRolController,
@@ -43,6 +44,11 @@ router.post('/restablecer', restablecerPasswordController);
 router.get(
   '/verificar-email',
   verificarEmailController
+);
+
+router.post(
+  '/reenviar-verificacion',
+  reenviarVerificacionController
 );
 
 

@@ -4,6 +4,7 @@ const {
   solicitarRecuperacion,
   restablecerPassword,
   verificarEmail,
+  reenviarVerificacion,
   obtenerPerfil,
   actualizarPerfil,
   cambiarRol,
@@ -257,6 +258,45 @@ async function restablecerPasswordController(req, res) {
 
 
 // ===============================
+// REENVIAR VERIFICACIÓN DE EMAIL
+// ===============================
+
+async function reenviarVerificacionController(req, res) {
+
+  try {
+
+    const { correo } = req.body;
+
+    if (!correo) {
+
+      return res.status(400).json({
+        error: 'El correo es obligatorio'
+      });
+
+    }
+
+    const resultado =
+      await reenviarVerificacion(correo);
+
+    return res.status(200).json(resultado);
+
+  } catch (error) {
+
+    console.error(
+      'ERROR REENVIANDO VERIFICACIÓN:',
+      error
+    );
+
+    return res.status(error.status || 500).json({
+      error: error.message ||
+        'Error al reenviar el correo de verificación'
+    });
+
+  }
+
+}
+
+// ===============================
 // VERIFICAR EMAIL
 // ===============================
 
@@ -264,14 +304,14 @@ async function verificarEmailController(req, res) {
 
   try {
 
-    const {
-      token
-    } = req.query;
+    const { token } = req.query;
 
     if (!token) {
+
       return res.redirect(
         `${process.env.APP_URL}/correo-verificado?estado=error&mensaje=Token+requerido`
       );
+
     }
 
     await verificarEmail(token);
@@ -282,7 +322,10 @@ async function verificarEmailController(req, res) {
 
   } catch (err) {
 
-    console.error(err);
+    console.error(
+      'ERROR VERIFICANDO EMAIL:',
+      err
+    );
 
     return res.redirect(
       `${process.env.APP_URL}/correo-verificado?estado=error&mensaje=${encodeURIComponent(err.message)}`
@@ -291,8 +334,6 @@ async function verificarEmailController(req, res) {
   }
 
 }
-
-
 
 // ===============================
 // PERFIL
@@ -522,6 +563,8 @@ module.exports = {
   restablecerPasswordController,
 
   verificarEmailController,
+
+  reenviarVerificacionController,
 
   perfil,
 
