@@ -1,5 +1,7 @@
 const express = require('express');
+
 const router = express.Router();
+
 const { upload } = require('../config/cloudinary');
 
 const {
@@ -16,8 +18,6 @@ const {
   cambiarPasswordController
 } = require('../controllers/authController');
 
-
-
 const {
   protegerRuta,
   verificarRol
@@ -28,13 +28,25 @@ const {
 // AUTENTICACIÓN
 // ===============================
 
-router.post('/registro', registro);
+router.post(
+  '/registro',
+  registro
+);
 
-router.post('/login', login);
+router.post(
+  '/login',
+  login
+);
 
-router.post('/recuperar', recuperarPassword);
+router.post(
+  '/recuperar',
+  recuperarPassword
+);
 
-router.post('/restablecer', restablecerPasswordController);
+router.post(
+  '/restablecer',
+  restablecerPasswordController
+);
 
 
 // ===============================
@@ -62,13 +74,11 @@ router.get(
   perfil
 );
 
-
 router.put(
   '/perfil',
   protegerRuta,
   actualizarPerfilController
 );
-
 
 router.put(
   '/perfil/foto',

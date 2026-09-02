@@ -3,25 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model Cliente {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  nit       String?
-  telefono  String?
-  correo    String?
-  direccion String?
-  ciudad    String?
-  contacto  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  usuarioId Int
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
-
-  @@map("clientes")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Usuario {
@@ -55,6 +39,24 @@ model Usuario {
   @@map("usuarios")
 }
 
+model Cliente {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  nit       String?
+  telefono  String?
+  correo    String?
+  direccion String?
+  ciudad    String?
+  contacto  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  usuarioId Int
+  usuario   Usuario    @relation(fields: [usuarioId], references: [id], map: "clientes_usuarioid_fkey")
+  proyectos Proyecto[]
+
+  @@map("clientes")
+}
+
 model PermisoUsuario {
   id                     Int      @id @default(autoincrement())
   usuarioId              Int      @unique
@@ -62,9 +64,6 @@ model PermisoUsuario {
   proyectosCrear         Boolean  @default(true)
   proyectosEditar        Boolean  @default(true)
   proyectosEliminar      Boolean  @default(true)
-
-  mapasVer               Boolean  @default(true)
-
   levantamientosVer      Boolean  @default(true)
   levantamientosCrear    Boolean  @default(true)
   levantamientosEditar   Boolean  @default(true)
@@ -78,32 +77,39 @@ model PermisoUsuario {
   reportesEditar         Boolean  @default(true)
   reportesEliminar       Boolean  @default(true)
   createdAt              DateTime @default(now())
-  updatedAt              DateTime
-  usuario                Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  updatedAt              DateTime @updatedAt
+  mapasVer               Boolean  @default(true)
+  clientesVer            Boolean  @default(true)
+  clientesCrear          Boolean  @default(true)
+  clientesEditar         Boolean  @default(true)
+  clientesEliminar       Boolean  @default(true)
+  usuario                Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade, map: "permisos_usuario_usuarioid_fkey")
 
   @@map("permisos_usuario")
 }
 
 model Proyecto {
-  id             Int                       @id @default(autoincrement())
-  nombre         String
-  descripcion    String?
-  cliente        String
-  ubicacion      String
-  estado         String                    @default("EN_PROGRESO")
-  fechaInicio    DateTime                  @default(now())
-  fechaFin       DateTime?
-  usuarioId      Int
-  createdAt      DateTime                  @default(now())
-  updatedAt      DateTime                  @updatedAt
-  latitud        Float?
-  longitud       Float?
-  ubicacion_geo  Unsupported("geography")?
-  archivos       Archivo[]
-  equipos        Equipo[]
-  levantamientos Levantamiento[]
-  usuario        Usuario                   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  puntos         PuntoTopografico[]
+  id              Int                       @id @default(autoincrement())
+  nombre          String
+  descripcion     String?
+  cliente         String
+  ubicacion       String
+  estado          String                    @default("EN_PROGRESO")
+  fechaInicio     DateTime                  @default(now())
+  fechaFin        DateTime?
+  usuarioId       Int
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  latitud         Float?
+  longitud        Float?
+  ubicacion_geo   Unsupported("geography")?
+  clienteId       Int?
+  archivos        Archivo[]
+  equipos         Equipo[]
+  levantamientos  Levantamiento[]
+  clienteRelacion Cliente?                  @relation(fields: [clienteId], references: [id], map: "proyectos_clienteid_fkey")
+  usuario         Usuario                   @relation(fields: [usuarioId], references: [id], onDelete: Cascade, map: "proyectos_usuarioid_fkey")
+  puntos          PuntoTopografico[]
 
   @@map("proyectos")
 }
@@ -127,19 +133,19 @@ model PuntoTopografico {
   longitud      Float?
   ubicacion_geo Unsupported("geography")?
   archivos      Archivo[]
-  proyecto      Proyecto                  @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
+  proyecto      Proyecto                  @relation(fields: [proyectoId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "puntos_topograficos_proyectoid_fkey")
 
   @@map("puntos_topograficos")
 }
 
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
-  token     String   @unique
+  token     String
   expiresAt DateTime
   used      Boolean  @default(false)
   usuarioId Int
   createdAt DateTime @default(now())
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "password_reset_tokens_usuarioid_fkey")
 
   @@map("password_reset_tokens")
 }
@@ -154,8 +160,8 @@ model Archivo {
   createdAt    DateTime          @default(now())
   publicId     String?
   resourceType String?
-  proyecto     Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  punto        PuntoTopografico? @relation(fields: [puntoId], references: [id], onDelete: Cascade)
+  proyecto     Proyecto?         @relation(fields: [proyectoId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "archivos_proyectoid_fkey")
+  punto        PuntoTopografico? @relation(fields: [puntoId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "archivos_puntoid_fkey")
 
   @@map("archivos")
 }
@@ -170,7 +176,7 @@ model Publicacion {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   comentarios Comentario[]
-  usuario     Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario     Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "publicaciones_usuarioid_fkey")
 
   @@map("publicaciones")
 }
@@ -181,8 +187,8 @@ model Comentario {
   usuarioId     Int
   publicacionId Int
   createdAt     DateTime    @default(now())
-  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade)
-  usuario       Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  publicacion   Publicacion @relation(fields: [publicacionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "comentarios_publicacionid_fkey")
+  usuario       Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "comentarios_usuarioid_fkey")
 
   @@map("comentarios")
 }
@@ -193,15 +199,15 @@ model Equipo {
   tipo           String
   marca          String?
   modelo         String?
-  numeroSerie    String?         @unique
+  numeroSerie    String?
   fechaCompra    DateTime?
   estado         String          @default("DISPONIBLE")
   proyectoId     Int?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   usuarioId      Int
-  proyecto       Proyecto?       @relation(fields: [proyectoId], references: [id])
-  usuario        Usuario         @relation(fields: [usuarioId], references: [id])
+  proyecto       Proyecto?       @relation(fields: [proyectoId], references: [id], map: "equipos_proyectoid_fkey")
+  usuario        Usuario         @relation(fields: [usuarioId], references: [id], map: "equipos_usuarioid_fkey")
   levantamientos Levantamiento[]
 
   @@map("equipos")
@@ -218,14 +224,13 @@ model Levantamiento {
   responsableId Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  equipo        Equipo?  @relation(fields: [equipoId], references: [id])
-  proyecto      Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade)
-  responsable   Usuario  @relation(fields: [responsableId], references: [id], onDelete: Cascade)
+  equipo        Equipo?  @relation(fields: [equipoId], references: [id], onUpdate: NoAction, map: "levantamientos_equipoid_fkey")
+  proyecto      Proyecto @relation(fields: [proyectoId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "levantamientos_proyectoid_fkey")
+  responsable   Usuario  @relation(fields: [responsableId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "levantamientos_responsableid_fkey")
 
   @@map("levantamientos")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model spatial_ref_sys {
   srid      Int     @id
   auth_name String? @db.VarChar(256)

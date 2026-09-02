@@ -6,9 +6,9 @@ const EMAIL_FROM =
   process.env.EMAIL_FROM || 'TopoPro FC <onboarding@resend.dev>';
 
 
-// ==================================
+// ======================================================
 // CORREO DE VERIFICACIÓN
-// ==================================
+// ======================================================
 
 async function enviarCorreoVerificacion(
   destinatario,
@@ -16,81 +16,95 @@ async function enviarCorreoVerificacion(
   nombre = ''
 ) {
 
+  const apiUrl =
+    process.env.API_URL || 'http://localhost:3000';
+
   const enlace =
-  `https://topopro-fc-api.onrender.com/api/auth/verificar-email?token=${token}`;
+    apiUrl +
+    '/api/auth/verificar-email?token=' +
+    String(token);
 
-  const { data, error } = await resend.emails.send({
 
-    from: EMAIL_FROM,
+  const { data, error } =
+    await resend.emails.send({
 
-    to: [destinatario],
+      from: EMAIL_FROM,
 
-    subject: 'Verifica tu cuenta en TopoPro FC',
+      to: [destinatario],
 
-    html: `
+      subject:
+        'Verifica tu cuenta en TopoPro FC',
 
-      <div style="
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-      ">
+      html:
+        '<div style="font-family:Arial,sans-serif;line-height:1.6;max-width:600px;margin:auto;">' +
 
-        <h2>
-          Bienvenido a TopoPro FC ${nombre}
-        </h2>
+        '<h2>Bienvenido a TopoPro FC ' +
+        nombre +
+        '</h2>' +
 
-        <p>
-          Gracias por registrarte en nuestra plataforma.
-        </p>
+        '<p>Se registró una nueva cuenta en TopoPro FC.</p>' +
 
-        <p>
-          Para activar tu cuenta verifica tu correo electrónico:
-        </p>
+        '<p><strong>Correo registrado:</strong> ' +
+        destinatario +
+        '</p>' +
 
-        <a
-          href="${enlace}"
-          style="
-            background:#2563eb;
-            color:white;
-            padding:12px 20px;
-            text-decoration:none;
-            border-radius:6px;
-            display:inline-block;
-          "
-        >
-          Verificar correo
-        </a>
+        '<p>Para activar esta cuenta haz clic en el siguiente botón:</p>' +
 
-        <p style="
-          color:#666;
-          font-size:13px;
-          margin-top:16px;
-        ">
-          Este enlace expira en 24 horas.
-        </p>
+        '<a href="' +
+        enlace +
+        '" style="background:#2563eb;color:white;padding:12px 20px;text-decoration:none;border-radius:6px;display:inline-block;">' +
 
-        <p>
-          Si el botón no funciona copia este enlace:
-        </p>
+        'Verificar correo' +
 
-        <p>
-          ${enlace}
-        </p>
+        '</a>' +
 
-        <hr>
+        '<p style="color:#666;font-size:13px;margin-top:16px;">' +
+        'Este enlace expira en 24 horas.' +
+        '</p>' +
 
-        <small>
-          Equipo TopoPro FC
-        </small>
+        '<p>Si el botón no funciona, copia este enlace:</p>' +
 
-      </div>
+        '<p style="word-break:break-all;color:#2563eb;">' +
+        enlace +
+        '</p>' +
 
-    `
-  });
+        '<hr>' +
+
+        '<small>Equipo TopoPro FC</small>' +
+
+        '</div>'
+    });
+
 
   if (error) {
+
+    console.error('');
     console.error(
-      'ERROR RESEND VERIFICACIÓN:',
+      '================ ERROR RESEND VERIFICACIÓN ================'
+    );
+
+    console.error(
+      'STATUS:',
+      error.statusCode
+    );
+
+    console.error(
+      'NAME:',
+      error.name
+    );
+
+    console.error(
+      'MESSAGE:',
+      error.message
+    );
+
+    console.error(
+      'ERROR COMPLETO:',
       error
+    );
+
+    console.error(
+      '============================================================'
     );
 
     throw new Error(
@@ -98,16 +112,18 @@ async function enviarCorreoVerificacion(
     );
   }
 
+
   console.log(
     '📧 Correo de verificación enviado:',
     data.id
   );
+
 }
 
 
-// ==================================
+// ======================================================
 // RECUPERACIÓN DE CONTRASEÑA
-// ==================================
+// ======================================================
 
 async function enviarCorreoRecuperacion(
   destinatario,
@@ -115,80 +131,89 @@ async function enviarCorreoRecuperacion(
 ) {
 
   const enlace =
-    `${process.env.APP_URL}/restablecer-password?token=${token}`;
+    (process.env.APP_URL || 'http://localhost:4200') +
+    '/restablecer-password?token=' +
+    String(token);
 
-  const { data, error } = await resend.emails.send({
 
-    from: EMAIL_FROM,
+  const { data, error } =
+    await resend.emails.send({
 
-    to: [destinatario],
+      from: EMAIL_FROM,
 
-    subject: 'Recuperación de contraseña - TopoPro FC',
+      to: [destinatario],
 
-    html: `
+      subject:
+        'Recuperación de contraseña - TopoPro FC',
 
-      <div style="
-        font-family: Arial, sans-serif;
-        line-height:1.6;
-      ">
+      html:
+        '<div style="font-family:Arial,sans-serif;line-height:1.6;max-width:600px;margin:auto;">' +
 
-        <h2>
-          Recuperación de contraseña
-        </h2>
+        '<h2>Recuperación de contraseña</h2>' +
 
-        <p>
-          Recibimos una solicitud para cambiar tu contraseña.
-        </p>
+        '<p>Recibimos una solicitud para cambiar tu contraseña.</p>' +
 
-        <p style="
-          color:#666;
-          font-size:13px;
-          margin-top:8px;
-        ">
-          Este enlace expira en 30 minutos.
-        </p>
+        '<p><strong>Cuenta:</strong> ' +
+        destinatario +
+        '</p>' +
 
-        <p>
-          Si realizaste esta solicitud puedes continuar:
-        </p>
+        '<p style="color:#666;font-size:13px;margin-top:8px;">' +
+        'Este enlace expira en 30 minutos.' +
+        '</p>' +
 
-        <a
-          href="${enlace}"
-          style="
-            background:#dc2626;
-            color:white;
-            padding:12px 20px;
-            text-decoration:none;
-            border-radius:6px;
-            display:inline-block;
-          "
-        >
-          Restablecer contraseña
-        </a>
+        '<p>Si realizaste esta solicitud puedes continuar:</p>' +
 
-        <p>
-          Si no solicitaste este cambio puedes ignorar este correo.
-        </p>
+        '<a href="' +
+        enlace +
+        '" style="background:#dc2626;color:white;padding:12px 20px;text-decoration:none;border-radius:6px;display:inline-block;">' +
 
-        <p>
-          ${enlace}
-        </p>
+        'Restablecer contraseña' +
 
-        <hr>
+        '</a>' +
 
-        <small>
-          Equipo TopoPro FC
-        </small>
+        '<p>Si no solicitaste este cambio puedes ignorar este correo.</p>' +
 
-      </div>
+        '<p style="word-break:break-all;color:#dc2626;">' +
+        enlace +
+        '</p>' +
 
-    `
-  });
+        '<hr>' +
+
+        '<small>Equipo TopoPro FC</small>' +
+
+        '</div>'
+    });
+
 
   if (error) {
+
+    console.error('');
     console.error(
-      'ERROR RESEND RECUPERACIÓN:',
+      '================ ERROR RESEND RECUPERACIÓN ================'
+    );
+
+    console.error(
+      'STATUS:',
+      error.statusCode
+    );
+
+    console.error(
+      'NAME:',
+      error.name
+    );
+
+    console.error(
+      'MESSAGE:',
+      error.message
+    );
+
+    console.error(
+      'ERROR COMPLETO:',
       error
+    );
+
+    console.error(
+      '============================================================'
     );
 
     throw new Error(
@@ -196,12 +221,18 @@ async function enviarCorreoRecuperacion(
     );
   }
 
+
   console.log(
     '📧 Correo de recuperación enviado:',
     data.id
   );
+
 }
 
+
+// ======================================================
+// EXPORTACIONES
+// ======================================================
 
 module.exports = {
 

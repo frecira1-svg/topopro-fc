@@ -245,6 +245,8 @@
 
                     <tr>
 
+                        <!-- CÓDIGO -->
+
                         <td>
 
                             <div class="codigo-punto">
@@ -262,15 +264,21 @@
                         </td>
 
 
+                        <!-- NORTE -->
+
                         <td>
                             {{ punto.norte }}
                         </td>
 
 
+                        <!-- ESTE -->
+
                         <td>
                             {{ punto.este }}
                         </td>
 
+
+                        <!-- ELEVACIÓN -->
 
                         <td>
 
@@ -280,6 +288,8 @@
 
                         </td>
 
+
+                        <!-- TIPO -->
 
                         <td>
 
@@ -300,7 +310,32 @@
                         </td>
 
 
+                        <!-- ACCIONES -->
+
                         <td class="acciones-tabla">
+
+                            <!-- LOCALIZAR -->
+
+                            <p-button
+
+                                icon="pi pi-map-marker"
+
+                                severity="success"
+
+                                [text]="true"
+
+                                [rounded]="true"
+
+                                pTooltip="Localizar punto"
+
+                                tooltipPosition="top"
+
+                                (onClick)="localizarPunto(punto)"
+
+                            />
+
+
+                            <!-- EDITAR -->
 
                             <p-button
 
@@ -320,6 +355,8 @@
 
                             />
 
+
+                            <!-- ELIMINAR -->
 
                             <p-button
 
@@ -346,6 +383,8 @@
                 </ng-template>
 
 
+
+                <!-- SIN DATOS -->
 
                 <ng-template #emptymessage>
 

@@ -14,7 +14,7 @@ function verificarPermiso(nombrePermiso) {
     try {
 
       // -------------------------------------------------
-      // Debe existir usuario autenticado
+      // USUARIO AUTENTICADO
       // -------------------------------------------------
 
       if (!req.usuario) {
@@ -27,31 +27,61 @@ function verificarPermiso(nombrePermiso) {
 
 
       // -------------------------------------------------
-      // ADMIN tiene acceso total
+      // ADMIN = ACCESO TOTAL
       // -------------------------------------------------
 
       if (req.usuario.rol === 'ADMIN') {
+
         return next();
+
       }
 
 
       // -------------------------------------------------
-      // Obtener permisos del usuario
+      // OBTENER PERMISOS
       // -------------------------------------------------
 
-      const permisos = await obtenerPermisos(
-        Number(req.usuario.id)
-      );
+      const permisos =
+        await obtenerPermisos(
+          Number(req.usuario.id)
+        );
 
 
       // -------------------------------------------------
-      // Verificar permiso solicitado
+      // VERIFICAR QUE EL PERMISO EXISTA
       // -------------------------------------------------
 
-      if (!permisos[nombrePermiso]) {
+      if (
+        typeof permisos[nombrePermiso] !== 'boolean'
+      ) {
+
+        console.error(
+          `Permiso no definido: ${nombrePermiso}`
+        );
+
+        return res.status(500).json({
+
+          error:
+            `El permiso "${nombrePermiso}" no está definido`
+
+        });
+
+      }
+
+
+      // -------------------------------------------------
+      // VERIFICAR PERMISO
+      // -------------------------------------------------
+
+      if (
+        permisos[nombrePermiso] !== true
+      ) {
 
         return res.status(403).json({
-          error: `No tienes permiso para realizar esta acción (${nombrePermiso})`
+
+          error:
+            `No tienes permiso para realizar esta acción (${nombrePermiso})`
+
         });
 
       }
@@ -69,9 +99,11 @@ function verificarPermiso(nombrePermiso) {
       return res.status(
         error.status || 500
       ).json({
+
         error:
           error.message ||
           'Error al verificar permisos'
+
       });
 
     }

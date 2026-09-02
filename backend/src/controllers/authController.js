@@ -34,7 +34,6 @@ async function registro(req, res) {
     } = req.body;
 
 
-
     if (!nombre || !apellido || !correo || !password) {
 
       return res.status(400).json({
@@ -43,7 +42,6 @@ async function registro(req, res) {
       });
 
     }
-
 
 
     const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,7 +56,6 @@ async function registro(req, res) {
     }
 
 
-
     if (password.length < 8) {
 
       return res.status(400).json({
@@ -67,7 +64,6 @@ async function registro(req, res) {
       });
 
     }
-
 
 
     const resultado =
@@ -86,13 +82,10 @@ async function registro(req, res) {
       });
 
 
-
     return res.status(201).json(resultado);
 
 
-
   } catch (err) {
-
 
     console.error(
       '\n================ ERROR REGISTRO ================'
@@ -103,7 +96,6 @@ async function registro(req, res) {
     console.error(
       '===============================================\n'
     );
-
 
 
     return res.status(err.status || 500).json({
@@ -117,22 +109,18 @@ async function registro(req, res) {
 }
 
 
-
 // ===============================
 // LOGIN
 // ===============================
 
 async function login(req, res) {
 
-
   try {
-
 
     const {
       correo,
       password
     } = req.body;
-
 
 
     if (!correo || !password) {
@@ -147,7 +135,6 @@ async function login(req, res) {
     }
 
 
-
     const resultado =
       await loginUsuario({
 
@@ -157,16 +144,12 @@ async function login(req, res) {
       });
 
 
-
     return res.json(resultado);
-
 
 
   } catch (err) {
 
-
     console.error(err);
-
 
 
     return res.status(err.status || 500).json({
@@ -178,7 +161,6 @@ async function login(req, res) {
   }
 
 }
-
 
 
 // ===============================
@@ -187,24 +169,18 @@ async function login(req, res) {
 
 async function recuperarPassword(req, res) {
 
-
   try {
-
 
     const resultado =
       await solicitarRecuperacion(req.body);
 
 
-
     return res.json(resultado);
-
 
 
   } catch (err) {
 
-
     console.error(err);
-
 
 
     return res.status(err.status || 500).json({
@@ -216,7 +192,6 @@ async function recuperarPassword(req, res) {
   }
 
 }
-
 
 
 // ===============================
@@ -225,24 +200,18 @@ async function recuperarPassword(req, res) {
 
 async function restablecerPasswordController(req, res) {
 
-
   try {
-
 
     const resultado =
       await restablecerPassword(req.body);
 
 
-
     return res.json(resultado);
-
 
 
   } catch (err) {
 
-
     console.error(err);
-
 
 
     return res.status(err.status || 500).json({
@@ -254,7 +223,6 @@ async function restablecerPasswordController(req, res) {
   }
 
 }
-
 
 
 // ===============================
@@ -267,6 +235,7 @@ async function reenviarVerificacionController(req, res) {
 
     const { correo } = req.body;
 
+
     if (!correo) {
 
       return res.status(400).json({
@@ -275,10 +244,13 @@ async function reenviarVerificacionController(req, res) {
 
     }
 
+
     const resultado =
       await reenviarVerificacion(correo);
 
+
     return res.status(200).json(resultado);
+
 
   } catch (error) {
 
@@ -287,14 +259,18 @@ async function reenviarVerificacionController(req, res) {
       error
     );
 
+
     return res.status(error.status || 500).json({
+
       error: error.message ||
         'Error al reenviar el correo de verificación'
+
     });
 
   }
 
 }
+
 
 // ===============================
 // VERIFICAR EMAIL
@@ -306,6 +282,7 @@ async function verificarEmailController(req, res) {
 
     const { token } = req.query;
 
+
     if (!token) {
 
       return res.redirect(
@@ -314,11 +291,14 @@ async function verificarEmailController(req, res) {
 
     }
 
+
     await verificarEmail(token);
+
 
     return res.redirect(
       `${process.env.APP_URL}/correo-verificado?estado=exito`
     );
+
 
   } catch (err) {
 
@@ -326,6 +306,7 @@ async function verificarEmailController(req, res) {
       'ERROR VERIFICANDO EMAIL:',
       err
     );
+
 
     return res.redirect(
       `${process.env.APP_URL}/correo-verificado?estado=error&mensaje=${encodeURIComponent(err.message)}`
@@ -335,19 +316,17 @@ async function verificarEmailController(req, res) {
 
 }
 
+
 // ===============================
 // PERFIL
 // ===============================
 
 async function perfil(req, res) {
 
-
   try {
-
 
     const usuario =
       await obtenerPerfil(req.usuario.id);
-
 
 
     res.status(200).json({
@@ -357,9 +336,7 @@ async function perfil(req, res) {
     });
 
 
-
   } catch (err) {
-
 
     res.status(err.status || 500).json({
 
@@ -374,23 +351,19 @@ async function perfil(req, res) {
 }
 
 
-
 // ===============================
 // ACTUALIZAR PERFIL
 // ===============================
 
 async function actualizarPerfilController(req, res) {
 
-
   try {
-
 
     const usuario =
       await actualizarPerfil(
         req.usuario.id,
         req.body
       );
-
 
 
     res.status(200).json({
@@ -400,9 +373,7 @@ async function actualizarPerfilController(req, res) {
     });
 
 
-
   } catch (err) {
-
 
     res.status(err.status || 500).json({
 
@@ -416,21 +387,19 @@ async function actualizarPerfilController(req, res) {
 
 }
 
+
 // ===============================
 // CAMBIAR CONTRASEÑA
 // ===============================
 
 async function cambiarPasswordController(req, res) {
 
-
   try {
-
 
     const {
       passwordActual,
       passwordNueva
     } = req.body;
-
 
 
     const resultado =
@@ -441,13 +410,10 @@ async function cambiarPasswordController(req, res) {
       );
 
 
-
     res.status(200).json(resultado);
 
 
-
   } catch (err) {
-
 
     res.status(err.status || 500).json({
 
@@ -462,22 +428,18 @@ async function cambiarPasswordController(req, res) {
 }
 
 
-
 // ===============================
 // CAMBIAR ROL
 // ===============================
 
 async function cambiarRolController(req, res) {
 
-
   try {
-
 
     const {
       usuarioId,
       nuevoRol
     } = req.body;
-
 
 
     if (!usuarioId || !nuevoRol) {
@@ -492,13 +454,11 @@ async function cambiarRolController(req, res) {
     }
 
 
-
     const usuario =
       await cambiarRol(
         Number(usuarioId),
         nuevoRol
       );
-
 
 
     res.status(200).json({
@@ -508,9 +468,7 @@ async function cambiarRolController(req, res) {
     });
 
 
-
   } catch (err) {
-
 
     res.status(err.status || 500).json({
 
@@ -524,6 +482,7 @@ async function cambiarRolController(req, res) {
 
 }
 
+
 // ===============================
 // SUBIR FOTO DE PERFIL
 // ===============================
@@ -533,24 +492,44 @@ async function subirFotoPerfil(req, res) {
   try {
 
     if (!req.file) {
+
       return res.status(400).json({
         error: 'No se recibió ninguna imagen'
       });
+
     }
 
-    const usuario = await actualizarFoto(req.usuario.id, req.file.path);
 
-    res.status(200).json({ usuario });
+    const usuario =
+      await actualizarFoto(
+        req.usuario.id,
+        req.file.path
+      );
+
+
+    res.status(200).json({
+      usuario
+    });
+
 
   } catch (err) {
 
     res.status(err.status || 500).json({
-      error: err.message || 'Error al subir la foto de perfil'
+
+      error:
+        err.message ||
+        'Error al subir la foto de perfil'
+
     });
 
   }
 
 }
+
+
+// ===============================
+// EXPORTACIONES
+// ===============================
 
 module.exports = {
 

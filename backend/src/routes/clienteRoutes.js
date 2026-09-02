@@ -1,6 +1,17 @@
 const express = require('express');
+
 const router = express.Router();
-const { protegerRuta } = require('../middleware/authMiddleware');
+
+
+const {
+  protegerRuta
+} = require('../middleware/authMiddleware');
+
+
+const {
+  verificarPermiso
+} = require('../middleware/permisoMiddleware');
+
 
 const {
   obtenerClientes,
@@ -10,12 +21,63 @@ const {
   eliminarCliente
 } = require('../controllers/clienteController');
 
+
+// =====================================================
+// AUTENTICACIÓN
+// =====================================================
+
 router.use(protegerRuta);
 
-router.get('/', obtenerClientes);
-router.get('/:id', obtenerCliente);
-router.post('/', crearCliente);
-router.put('/:id', actualizarCliente);
-router.delete('/:id', eliminarCliente);
+
+// =====================================================
+// CONSULTAR CLIENTES
+// =====================================================
+
+router.get(
+  '/',
+  verificarPermiso('clientesVer'),
+  obtenerClientes
+);
+
+
+router.get(
+  '/:id',
+  verificarPermiso('clientesVer'),
+  obtenerCliente
+);
+
+
+// =====================================================
+// CREAR
+// =====================================================
+
+router.post(
+  '/',
+  verificarPermiso('clientesCrear'),
+  crearCliente
+);
+
+
+// =====================================================
+// EDITAR
+// =====================================================
+
+router.put(
+  '/:id',
+  verificarPermiso('clientesEditar'),
+  actualizarCliente
+);
+
+
+// =====================================================
+// ELIMINAR
+// =====================================================
+
+router.delete(
+  '/:id',
+  verificarPermiso('clientesEliminar'),
+  eliminarCliente
+);
+
 
 module.exports = router;

@@ -3,19 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
-  Proyecto,
-  ProyectoRequest
-} from '../models/proyecto.model';
+  Cliente
+} from '../models/cliente.model';
 
 import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProyectoService {
+export class ClienteService {
 
   private readonly API_URL =
-    `${environment.apiUrl}/proyectos`;
+    `${environment.apiUrl}/clientes`;
 
 
   constructor(
@@ -27,9 +27,9 @@ export class ProyectoService {
   // OBTENER TODOS
   // =====================================================
 
-  obtenerTodos(): Observable<Proyecto[]> {
+  obtenerTodos(): Observable<Cliente[]> {
 
-    return this.http.get<Proyecto[]>(
+    return this.http.get<Cliente[]>(
       this.API_URL
     );
 
@@ -42,9 +42,9 @@ export class ProyectoService {
 
   obtenerPorId(
     id: number
-  ): Observable<Proyecto> {
+  ): Observable<Cliente> {
 
-    return this.http.get<Proyecto>(
+    return this.http.get<Cliente>(
       `${this.API_URL}/${id}`
     );
 
@@ -56,10 +56,10 @@ export class ProyectoService {
   // =====================================================
 
   crear(
-    datos: ProyectoRequest
-  ): Observable<Proyecto> {
+    datos: Partial<Cliente>
+  ): Observable<Cliente> {
 
-    return this.http.post<Proyecto>(
+    return this.http.post<Cliente>(
       this.API_URL,
       datos
     );
@@ -73,10 +73,10 @@ export class ProyectoService {
 
   actualizar(
     id: number,
-    datos: ProyectoRequest
-  ): Observable<Proyecto> {
+    datos: Partial<Cliente>
+  ): Observable<Cliente> {
 
-    return this.http.put<Proyecto>(
+    return this.http.put<Cliente>(
       `${this.API_URL}/${id}`,
       datos
     );

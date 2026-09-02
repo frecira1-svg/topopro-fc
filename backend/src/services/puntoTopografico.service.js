@@ -116,10 +116,18 @@ async function crearPunto(datos, usuario) {
     longitud
   } = datos;
 
+  // -----------------------------------------------
+  // VALIDAR CAMPOS OBLIGATORIOS
+  // -----------------------------------------------
+
   if (!codigo || !codigo.trim()) {
 
-    const error = new Error('El código del punto es obligatorio');
+    const error = new Error(
+      'El código del punto es obligatorio'
+    );
+
     error.status = 400;
+
     throw error;
   }
 
@@ -129,34 +137,97 @@ async function crearPunto(datos, usuario) {
     elevacion === undefined || elevacion === null
   ) {
 
-    const error = new Error('Norte, este y elevación son obligatorios');
+    const error = new Error(
+      'Norte, este y elevación son obligatorios'
+    );
+
     error.status = 400;
+
     throw error;
   }
 
-  // Validar que el proyecto pertenece al usuario
+
+  // -----------------------------------------------
+  // VALIDAR PROYECTO Y PERMISOS
+  // -----------------------------------------------
+
   await obtenerProyectoAutorizado(
     proyectoId,
     usuario
   );
 
-  const punto = await prisma.puntoTopografico.create({
-    data: {
-      codigo,
-      norte,
-      este,
-      elevacion,
-      descripcion,
-      tipo,
-      precision,
-      equipo,
-      metodo,
-      observaciones,
-      proyectoId: Number(proyectoId),
-      latitud,
-      longitud
-    }
-  });
+
+  // -----------------------------------------------
+  // VALIDAR CÓDIGO DUPLICADO
+  // -----------------------------------------------
+
+  const codigoLimpio =
+    codigo.trim();
+
+  const puntoExistente =
+    await prisma.puntoTopografico.findFirst({
+
+      where: {
+        proyectoId: Number(proyectoId),
+        codigo: codigoLimpio
+      }
+
+    });
+
+
+  if (puntoExistente) {
+
+    const error = new Error(
+      `Ya existe un punto con el código "${codigoLimpio}" en este proyecto`
+    );
+
+    error.status = 400;
+
+    throw error;
+  }
+
+
+  // -----------------------------------------------
+  // CREAR PUNTO
+  // -----------------------------------------------
+
+  const punto =
+    await prisma.puntoTopografico.create({
+
+      data: {
+
+        codigo:
+          codigoLimpio,
+
+        norte,
+
+        este,
+
+        elevacion,
+
+        descripcion,
+
+        tipo,
+
+        precision,
+
+        equipo,
+
+        metodo,
+
+        observaciones,
+
+        proyectoId:
+          Number(proyectoId),
+
+        latitud,
+
+        longitud
+
+      }
+
+    });
+
 
   return punto;
 }
@@ -251,13 +322,24 @@ async function actualizarPunto(
   usuario
 ) {
 
-  // Verifica que el punto actual pertenezca al usuario
-  const punto = await obtenerPuntoAutorizado(
-    id,
-    usuario
-  );
+  // -----------------------------------------------
+  // VERIFICAR QUE EL PUNTO EXISTA Y TENGA PERMISO
+  // -----------------------------------------------
 
-  let proyectoId = punto.proyectoId;
+  const punto =
+    await obtenerPuntoAutorizado(
+      id,
+      usuario
+    );
+
+
+  // -----------------------------------------------
+  // DETERMINAR PROYECTO
+  // -----------------------------------------------
+
+  let proyectoId =
+    punto.proyectoId;
+
 
   // Si se intenta cambiar de proyecto,
   // validar el nuevo proyecto
@@ -274,8 +356,80 @@ async function actualizarPunto(
       usuario
     );
 
-    proyectoId = nuevoProyectoId;
+    proyectoId =
+      nuevoProyectoId;
   }
+
+
+  // -----------------------------------------------
+  // VALIDAR CÓDIGO
+  // -----------------------------------------------
+
+  if (
+    datos.codigo !== undefined &&
+    datos.codigo !== null
+  ) {
+
+    const codigoLimpio =
+      String(datos.codigo).trim();
+
+
+    if (!codigoLimpio) {
+
+      const error = new Error(
+        'El código del punto es obligatorio'
+      );
+
+      error.status = 400;
+
+      throw error;
+    }
+
+
+    // ---------------------------------------------
+    // BUSCAR OTRO PUNTO CON EL MISMO CÓDIGO
+    // ---------------------------------------------
+
+    const puntoExistente =
+      await prisma.puntoTopografico.findFirst({
+
+        where: {
+
+          proyectoId,
+
+          codigo:
+            codigoLimpio,
+
+          NOT: {
+            id: Number(id)
+          }
+
+        }
+
+      });
+
+
+    if (puntoExistente) {
+
+      const error = new Error(
+        `Ya existe un punto con el código "${codigoLimpio}" en este proyecto`
+      );
+
+      error.status = 400;
+
+      throw error;
+    }
+
+
+    datos.codigo =
+      codigoLimpio;
+
+  }
+
+
+  // -----------------------------------------------
+  // ACTUALIZAR
+  // -----------------------------------------------
 
   return await prisma.puntoTopografico.update({
 
@@ -284,19 +438,45 @@ async function actualizarPunto(
     },
 
     data: {
-      codigo: datos.codigo,
-      norte: datos.norte,
-      este: datos.este,
-      elevacion: datos.elevacion,
-      descripcion: datos.descripcion,
-      tipo: datos.tipo,
-      precision: datos.precision,
-      equipo: datos.equipo,
-      metodo: datos.metodo,
-      observaciones: datos.observaciones,
+
+      codigo:
+        datos.codigo,
+
+      norte:
+        datos.norte,
+
+      este:
+        datos.este,
+
+      elevacion:
+        datos.elevacion,
+
+      descripcion:
+        datos.descripcion,
+
+      tipo:
+        datos.tipo,
+
+      precision:
+        datos.precision,
+
+      equipo:
+        datos.equipo,
+
+      metodo:
+        datos.metodo,
+
+      observaciones:
+        datos.observaciones,
+
       proyectoId,
-      latitud: datos.latitud,
-      longitud: datos.longitud
+
+      latitud:
+        datos.latitud,
+
+      longitud:
+        datos.longitud
+
     }
 
   });
@@ -327,7 +507,8 @@ async function eliminarPunto(
   });
 
   return {
-    mensaje: 'Punto topográfico eliminado correctamente'
+    mensaje:
+      'Punto topográfico eliminado correctamente'
   };
 
 }
@@ -344,79 +525,159 @@ async function obtenerPuntosCercanos(
   usuario
 ) {
 
-  const radioMetros = radioKm * 1000;
+  const radioMetros =
+    radioKm * 1000;
 
   let puntos;
 
+
   if (usuario.rol === 'ADMIN') {
 
-    puntos = await prisma.$queryRaw`
+    puntos =
+      await prisma.$queryRaw`
+
       SELECT
+
         pt.id,
+
         pt.codigo,
+
         pt.norte,
+
         pt.este,
+
         pt.elevacion,
+
         pt.descripcion,
+
         pt.tipo,
+
         pt.latitud,
+
         pt.longitud,
+
         pt."proyectoId",
+
         ST_Distance(
+
           pt.ubicacion_geo,
+
           ST_SetSRID(
-            ST_MakePoint(${lng}, ${lat}),
+
+            ST_MakePoint(
+              ${lng},
+              ${lat}
+            ),
+
             4326
+
           )::geography
+
         ) / 1000 AS distancia_km
+
       FROM puntos_topograficos pt
+
       WHERE pt.ubicacion_geo IS NOT NULL
+
         AND ST_DWithin(
+
           pt.ubicacion_geo,
+
           ST_SetSRID(
-            ST_MakePoint(${lng}, ${lat}),
+
+            ST_MakePoint(
+              ${lng},
+              ${lat}
+            ),
+
             4326
+
           )::geography,
+
           ${radioMetros}
+
         )
+
       ORDER BY distancia_km ASC
+
     `;
 
   } else {
 
-    puntos = await prisma.$queryRaw`
+    puntos =
+      await prisma.$queryRaw`
+
       SELECT
+
         pt.id,
+
         pt.codigo,
+
         pt.norte,
+
         pt.este,
+
         pt.elevacion,
+
         pt.descripcion,
+
         pt.tipo,
+
         pt.latitud,
+
         pt.longitud,
+
         pt."proyectoId",
+
         ST_Distance(
+
           pt.ubicacion_geo,
+
           ST_SetSRID(
-            ST_MakePoint(${lng}, ${lat}),
+
+            ST_MakePoint(
+              ${lng},
+              ${lat}
+            ),
+
             4326
+
           )::geography
+
         ) / 1000 AS distancia_km
+
       FROM puntos_topograficos pt
+
       INNER JOIN proyectos p
+
         ON p.id = pt."proyectoId"
+
       WHERE pt.ubicacion_geo IS NOT NULL
-        AND p."usuarioId" = ${Number(usuario.id)}
+
+        AND p."usuarioId" =
+          ${Number(usuario.id)}
+
         AND ST_DWithin(
+
           pt.ubicacion_geo,
+
           ST_SetSRID(
-            ST_MakePoint(${lng}, ${lat}),
+
+            ST_MakePoint(
+              ${lng},
+              ${lat}
+            ),
+
             4326
+
           )::geography,
+
           ${radioMetros}
+
         )
+
       ORDER BY distancia_km ASC
+
     `;
 
   }
@@ -436,16 +697,24 @@ async function importarPuntosCSV(
   usuario
 ) {
 
-  // 🔐 Validar propietario antes de importar
+  // Validar propietario antes de importar
   await obtenerProyectoAutorizado(
     proyectoId,
     usuario
   );
 
-  const lineas = contenidoCSV
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
+
+  const lineas =
+    contenidoCSV
+
+      .split(/\r?\n/)
+
+      .map(l => l.trim())
+
+      .filter(
+        l => l.length > 0
+      );
+
 
   if (lineas.length < 2) {
 
@@ -458,147 +727,304 @@ async function importarPuntosCSV(
     throw error;
   }
 
+
   const delimitador =
     lineas[0].includes(';')
       ? ';'
       : ',';
 
+
   const encabezados =
     lineas[0]
+
       .split(delimitador)
-      .map(h => h.trim().toLowerCase());
 
-  const parseNumero = (valor) => {
-
-    if (
-      valor === undefined ||
-      valor === null ||
-      valor.trim() === ''
-    ) {
-      return null;
-    }
-
-    let limpio = valor.trim();
-
-    if (
-      limpio.includes(',') &&
-      !limpio.includes('.')
-    ) {
-      limpio = limpio.replace(',', '.');
-    } else {
-      limpio = limpio.replace(/,/g, '');
-    }
-
-    const num = parseFloat(limpio);
-
-    return isNaN(num)
-      ? null
-      : num;
-  };
+      .map(
+        h =>
+          h.trim().toLowerCase()
+      );
 
 
-  const filas = lineas
-    .slice(1)
-    .map((linea, index) => {
+  const parseNumero =
+    (valor) => {
 
-      const valores =
-        linea.split(delimitador);
+      if (
+        valor === undefined ||
+        valor === null ||
+        valor.trim() === ''
+      ) {
 
-      const fila = {};
-
-      encabezados.forEach((h, i) => {
-
-        fila[h] =
-          valores[i] !== undefined
-            ? valores[i].trim()
-            : '';
-
-      });
-
-
-      if (!fila['codigo']) {
-
-        const error = new Error(
-          `Fila ${index + 2}: el código es obligatorio`
-        );
-
-        error.status = 400;
-
-        throw error;
+        return null;
       }
 
 
-      const norte =
-        parseNumero(fila['norte']);
-
-      const este =
-        parseNumero(fila['este']);
-
-      const elevacion =
-        parseNumero(fila['elevacion']);
+      let limpio =
+        valor.trim();
 
 
       if (
-        norte === null ||
-        este === null ||
-        elevacion === null
+        limpio.includes(',') &&
+        !limpio.includes('.')
       ) {
 
-        const error = new Error(
-          `Fila ${index + 2}: norte, este y elevación son obligatorios y deben ser numéricos`
-        );
+        limpio =
+          limpio.replace(
+            ',',
+            '.'
+          );
 
-        error.status = 400;
+      } else {
 
-        throw error;
+        limpio =
+          limpio.replace(
+            /,/g,
+            ''
+          );
+
       }
 
 
-      return {
+      const num =
+        parseFloat(limpio);
 
-        codigo: fila['codigo'],
 
-        norte,
+      return isNaN(num)
+        ? null
+        : num;
 
-        este,
+    };
 
-        elevacion,
 
-        descripcion:
-          fila['descripcion'] || null,
+  const filas =
+    lineas
 
-        tipo:
-          fila['tipo'] || null,
+      .slice(1)
 
-        precision:
-          parseNumero(fila['precision']),
+      .map(
+        (linea, index) => {
 
-        equipo:
-          fila['equipo'] || null,
+          const valores =
+            linea.split(
+              delimitador
+            );
 
-        metodo:
-          fila['metodo'] || null,
 
-        observaciones:
-          fila['observaciones'] || null,
+          const fila = {};
 
-        latitud:
-          parseNumero(fila['latitud']),
 
-        longitud:
-          parseNumero(fila['longitud']),
+          encabezados.forEach(
+            (h, i) => {
+
+              fila[h] =
+                valores[i] !== undefined
+                  ? valores[i].trim()
+                  : '';
+
+            }
+          );
+
+
+          if (!fila['codigo']) {
+
+            const error =
+              new Error(
+                `Fila ${index + 2}: el código es obligatorio`
+              );
+
+            error.status =
+              400;
+
+            throw error;
+          }
+
+
+          const norte =
+            parseNumero(
+              fila['norte']
+            );
+
+
+          const este =
+            parseNumero(
+              fila['este']
+            );
+
+
+          const elevacion =
+            parseNumero(
+              fila['elevacion']
+            );
+
+
+          if (
+            norte === null ||
+            este === null ||
+            elevacion === null
+          ) {
+
+            const error =
+              new Error(
+                `Fila ${index + 2}: norte, este y elevación son obligatorios y deben ser numéricos`
+              );
+
+            error.status =
+              400;
+
+            throw error;
+          }
+
+
+          return {
+
+            codigo:
+              fila['codigo'].trim(),
+
+            norte,
+
+            este,
+
+            elevacion,
+
+            descripcion:
+              fila['descripcion'] ||
+              null,
+
+            tipo:
+              fila['tipo'] ||
+              null,
+
+            precision:
+              parseNumero(
+                fila['precision']
+              ),
+
+            equipo:
+              fila['equipo'] ||
+              null,
+
+            metodo:
+              fila['metodo'] ||
+              null,
+
+            observaciones:
+              fila['observaciones'] ||
+              null,
+
+            latitud:
+              parseNumero(
+                fila['latitud']
+              ),
+
+            longitud:
+              parseNumero(
+                fila['longitud']
+              ),
+
+            proyectoId:
+              Number(proyectoId)
+
+          };
+
+        }
+      );
+
+
+  // -----------------------------------------------
+  // VALIDAR CÓDIGOS DUPLICADOS EN EL CSV
+  // -----------------------------------------------
+
+  const codigos =
+    new Set();
+
+  for (
+    const fila of filas
+  ) {
+
+    const codigo =
+      fila.codigo.trim();
+
+
+    if (
+      codigos.has(codigo)
+    ) {
+
+      const error =
+        new Error(
+          `El archivo CSV contiene el código duplicado "${codigo}"`
+        );
+
+      error.status =
+        400;
+
+      throw error;
+    }
+
+
+    codigos.add(codigo);
+
+  }
+
+
+  // -----------------------------------------------
+  // VALIDAR CÓDIGOS YA EXISTENTES
+  // -----------------------------------------------
+
+  const codigosExistentes =
+    await prisma.puntoTopografico.findMany({
+
+      where: {
 
         proyectoId:
-          Number(proyectoId)
+          Number(proyectoId),
 
-      };
+        codigo: {
+          in: Array.from(codigos)
+        }
+
+      },
+
+      select: {
+        codigo: true
+      }
 
     });
 
 
+  if (
+    codigosExistentes.length > 0
+  ) {
+
+    const duplicados =
+      codigosExistentes
+        .map(
+          punto =>
+            punto.codigo
+        )
+        .join(', ');
+
+
+    const error =
+      new Error(
+        `Los siguientes códigos ya existen en este proyecto: ${duplicados}`
+      );
+
+    error.status =
+      400;
+
+    throw error;
+  }
+
+
+  // -----------------------------------------------
+  // CREAR PUNTOS
+  // -----------------------------------------------
+
   const resultado =
     await prisma.puntoTopografico.createMany({
-      data: filas
+
+      data:
+        filas
+
     });
 
 

@@ -12,6 +12,11 @@ const PERMISOS_POR_DEFECTO = {
   proyectosEditar: true,
   proyectosEliminar: true,
 
+  clientesVer: true,
+  clientesCrear: true,
+  clientesEditar: true,
+  clientesEliminar: true,
+
   levantamientosVer: true,
   levantamientosCrear: true,
   levantamientosEditar: true,
@@ -41,13 +46,11 @@ async function obtenerUsuarios() {
   return await prisma.usuario.findMany({
 
     select: {
-
       id: true,
       nombre: true,
       apellido: true,
       correo: true,
       rol: true
-
     },
 
     orderBy: {
@@ -74,7 +77,6 @@ async function obtenerPermisos(usuarioId) {
     }
 
   });
-
 
   if (!usuario) {
 
@@ -108,11 +110,8 @@ async function obtenerPermisos(usuarioId) {
       await prisma.permisoUsuario.create({
 
         data: {
-
           usuarioId: id,
-
           ...PERMISOS_POR_DEFECTO
-
         }
 
       });
@@ -135,9 +134,7 @@ async function actualizarPermisos(
   usuarioSolicitante
 ) {
 
-  if (
-    usuarioSolicitante.rol !== 'ADMIN'
-  ) {
+  if (usuarioSolicitante.rol !== 'ADMIN') {
 
     const error =
       new Error(
@@ -151,8 +148,7 @@ async function actualizarPermisos(
   }
 
 
-  const id =
-    Number(usuarioId);
+  const id = Number(usuarioId);
 
 
   const usuario =
@@ -168,9 +164,7 @@ async function actualizarPermisos(
   if (!usuario) {
 
     const error =
-      new Error(
-        'Usuario no encontrado'
-      );
+      new Error('Usuario no encontrado');
 
     error.status = 404;
 
@@ -180,25 +174,18 @@ async function actualizarPermisos(
 
 
   // ---------------------------------------------------
-  // SOLO CAMPOS DEFINIDOS EN PERMISOS POR DEFECTO
+  // SOLO CAMPOS DE PERMISOS
   // ---------------------------------------------------
 
   const camposPermitidos =
-    Object.keys(
-      PERMISOS_POR_DEFECTO
-    );
-
+    Object.keys(PERMISOS_POR_DEFECTO);
 
   const dataLimpia = {};
 
 
-  for (
-    const campo of camposPermitidos
-  ) {
+  for (const campo of camposPermitidos) {
 
-    if (
-      typeof datos[campo] === 'boolean'
-    ) {
+    if (typeof datos[campo] === 'boolean') {
 
       dataLimpia[campo] =
         datos[campo];
@@ -219,8 +206,7 @@ async function actualizarPermisos(
         usuarioId: id
       },
 
-      update:
-        dataLimpia,
+      update: dataLimpia,
 
       create: {
 
@@ -239,6 +225,10 @@ async function actualizarPermisos(
 
 }
 
+
+// =====================================================
+// EXPORTACIONES
+// =====================================================
 
 module.exports = {
 

@@ -23,14 +23,25 @@ const obtenerProyectos = async (req, res) => {
       include: {
 
         usuario: {
-
           select: {
             id: true,
             nombre: true,
             apellido: true,
             correo: true
           }
+        },
 
+        clienteRelacion: {
+          select: {
+            id: true,
+            nombre: true,
+            nit: true,
+            telefono: true,
+            correo: true,
+            direccion: true,
+            ciudad: true,
+            contacto: true
+          }
         }
 
       },
@@ -93,20 +104,34 @@ const obtenerProyecto = async (req, res) => {
 
       },
 
-      // ✅ AHORA (sanitizado)
-include: {
-  usuario: {
-    select: {
-      id: true,
-      nombre: true,
-      apellido: true,
-      correo: true,
-      profesion: true,
-      foto: true,
-      rol: true
-    }
-  }
-}
+      include: {
+
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            correo: true,
+            profesion: true,
+            foto: true,
+            rol: true
+          }
+        },
+
+        clienteRelacion: {
+          select: {
+            id: true,
+            nombre: true,
+            nit: true,
+            telefono: true,
+            correo: true,
+            direccion: true,
+            ciudad: true,
+            contacto: true
+          }
+        }
+
+      }
 
     });
 
@@ -144,16 +169,30 @@ const crearProyecto = async (req, res) => {
 
   try {
 
+    const usuarioId = Number(req.usuario.id);
+    const rol = req.usuario.rol;
+
+
     const {
       nombre,
       descripcion,
-      cliente,
+      clienteId,
       ubicacion,
       estado,
       latitud,
       longitud
     } = req.body;
 
+console.log('========== CREAR PROYECTO ==========');
+console.log('BODY RECIBIDO:', req.body);
+console.log('clienteId:', clienteId);
+console.log('tipo clienteId:', typeof clienteId);
+console.log('====================================');
+
+
+    // -------------------------------------------------
+    // Validar nombre
+    // -------------------------------------------------
 
     if (!nombre || !nombre.trim()) {
 
@@ -164,14 +203,81 @@ const crearProyecto = async (req, res) => {
     }
 
 
+    // -------------------------------------------------
+    // Validar cliente
+    // -------------------------------------------------
+
+    const clienteIdNum = Number(clienteId);
+
+    if (
+      clienteId === undefined ||
+      clienteId === null ||
+      clienteId === '' ||
+      Number.isNaN(clienteIdNum)
+    ) {
+
+      return res.status(400).json({
+        error: 'El cliente es obligatorio'
+      });
+
+    }
+
+
+    // -------------------------------------------------
+    // Verificar que el cliente existe
+    // y pertenece al usuario
+    // -------------------------------------------------
+
+    const clienteExiste = await prisma.cliente.findFirst({
+
+      where: {
+
+        id: clienteIdNum,
+
+        ...(rol === 'ADMIN'
+          ? {}
+          : {
+              usuarioId
+            })
+
+      }
+
+    });
+
+
+    if (!clienteExiste) {
+
+      return res.status(400).json({
+        error:
+          'El cliente no existe o no tienes permisos para utilizarlo'
+      });
+
+    }
+
+
+    // -------------------------------------------------
+    // Crear proyecto
+    // -------------------------------------------------
+
     const proyecto = await prisma.proyecto.create({
 
       data: {
 
-        nombre,
-        descripcion,
-        cliente,
-        ubicacion,
+        nombre: nombre.trim(),
+
+        descripcion:
+          descripcion?.trim() || null,
+
+        // Mantener campo antiguo por compatibilidad
+        cliente:
+          clienteExiste.nombre,
+
+        // Nueva relación
+        clienteId:
+          clienteIdNum,
+
+        ubicacion:
+          ubicacion?.trim() || '',
 
         estado:
           estado || 'EN_PROGRESO',
@@ -182,8 +288,24 @@ const crearProyecto = async (req, res) => {
         longitud:
           longitud ?? null,
 
-        usuarioId:
-          Number(req.usuario.id)
+        usuarioId
+
+      },
+
+      include: {
+
+        clienteRelacion: {
+          select: {
+            id: true,
+            nombre: true,
+            nit: true,
+            telefono: true,
+            correo: true,
+            direccion: true,
+            ciudad: true,
+            contacto: true
+          }
+        }
 
       }
 
@@ -218,6 +340,10 @@ const actualizarProyecto = async (req, res) => {
     const usuarioId = Number(req.usuario.id);
     const rol = req.usuario.rol;
 
+
+    // -------------------------------------------------
+    // Validar ID
+    // -------------------------------------------------
 
     if (Number.isNaN(id)) {
 
@@ -274,6 +400,99 @@ const actualizarProyecto = async (req, res) => {
     } = req.body;
 
 
+    // Evitar que lleguen valores indefinidos
+    Object.keys(datosActualizacion).forEach((key) => {
+
+      if (datosActualizacion[key] === undefined) {
+        delete datosActualizacion[key];
+      }
+
+    });
+
+
+    // -------------------------------------------------
+    // Si se está modificando el cliente
+    // verificar pertenencia
+    // -------------------------------------------------
+
+    if (datosActualizacion.clienteId !== undefined) {
+
+      const clienteIdNum =
+        Number(datosActualizacion.clienteId);
+
+
+      if (
+        Number.isNaN(clienteIdNum) ||
+        clienteIdNum <= 0
+      ) {
+
+        return res.status(400).json({
+          error: 'clienteId inválido'
+        });
+
+      }
+
+
+      const clienteExiste =
+        await prisma.cliente.findFirst({
+
+          where: {
+
+            id: clienteIdNum,
+
+            ...(rol === 'ADMIN'
+              ? {}
+              : {
+                  usuarioId
+                })
+
+          }
+
+        });
+
+
+      if (!clienteExiste) {
+
+        return res.status(400).json({
+          error:
+            'El cliente no existe o no tienes permisos para utilizarlo'
+        });
+
+      }
+
+
+      // Normalizar ID
+      datosActualizacion.clienteId =
+        clienteIdNum;
+
+
+      // Mantener sincronizado el campo antiguo
+      datosActualizacion.cliente =
+        clienteExiste.nombre;
+
+    }
+
+
+    // -------------------------------------------------
+    // Si llega cliente como texto antiguo pero NO
+    // llega clienteId, NO permitimos cambiarlo
+    // independientemente.
+    // -------------------------------------------------
+
+    if (
+      datosActualizacion.cliente !== undefined &&
+      datosActualizacion.clienteId === undefined
+    ) {
+
+      delete datosActualizacion.cliente;
+
+    }
+
+
+    // -------------------------------------------------
+    // Actualizar proyecto
+    // -------------------------------------------------
+
     const proyectoActualizado =
       await prisma.proyecto.update({
 
@@ -281,7 +500,24 @@ const actualizarProyecto = async (req, res) => {
           id
         },
 
-        data: datosActualizacion
+        data: datosActualizacion,
+
+        include: {
+
+          clienteRelacion: {
+            select: {
+              id: true,
+              nombre: true,
+              nit: true,
+              telefono: true,
+              correo: true,
+              direccion: true,
+              ciudad: true,
+              contacto: true
+            }
+          }
+
+        }
 
       });
 
@@ -419,6 +655,7 @@ const proyectosCercanosController = async (req, res) => {
 
     const latNum = Number(lat);
     const lngNum = Number(lng);
+
     const radioMetros =
       Number(radioKm) * 1000;
 
@@ -453,18 +690,26 @@ const proyectosCercanosController = async (req, res) => {
 
         SELECT
 
-          id,
-          nombre,
-          descripcion,
-          cliente,
-          ubicacion,
-          estado,
-          latitud,
-          longitud,
+          p.id,
+          p.nombre,
+          p.descripcion,
+
+          -- Campo antiguo
+          p.cliente,
+
+          -- Nueva relación
+          p."clienteId",
+
+          c.nombre AS "clienteNombre",
+
+          p.ubicacion,
+          p.estado,
+          p.latitud,
+          p.longitud,
 
           ST_Distance(
 
-            ubicacion_geo,
+            p.ubicacion_geo,
 
             ST_SetSRID(
 
@@ -479,13 +724,16 @@ const proyectosCercanosController = async (req, res) => {
 
           ) / 1000 AS distancia_km
 
-        FROM proyectos
+        FROM proyectos p
 
-        WHERE ubicacion_geo IS NOT NULL
+        LEFT JOIN clientes c
+          ON c.id = p."clienteId"
+
+        WHERE p.ubicacion_geo IS NOT NULL
 
           AND ST_DWithin(
 
-            ubicacion_geo,
+            p.ubicacion_geo,
 
             ST_SetSRID(
 
@@ -512,18 +760,26 @@ const proyectosCercanosController = async (req, res) => {
 
         SELECT
 
-          id,
-          nombre,
-          descripcion,
-          cliente,
-          ubicacion,
-          estado,
-          latitud,
-          longitud,
+          p.id,
+          p.nombre,
+          p.descripcion,
+
+          -- Campo antiguo
+          p.cliente,
+
+          -- Nueva relación
+          p."clienteId",
+
+          c.nombre AS "clienteNombre",
+
+          p.ubicacion,
+          p.estado,
+          p.latitud,
+          p.longitud,
 
           ST_Distance(
 
-            ubicacion_geo,
+            p.ubicacion_geo,
 
             ST_SetSRID(
 
@@ -538,15 +794,18 @@ const proyectosCercanosController = async (req, res) => {
 
           ) / 1000 AS distancia_km
 
-        FROM proyectos
+        FROM proyectos p
 
-        WHERE ubicacion_geo IS NOT NULL
+        LEFT JOIN clientes c
+          ON c.id = p."clienteId"
 
-          AND "usuarioId" = ${usuarioId}
+        WHERE p.ubicacion_geo IS NOT NULL
+
+          AND p."usuarioId" = ${usuarioId}
 
           AND ST_DWithin(
 
-            ubicacion_geo,
+            p.ubicacion_geo,
 
             ST_SetSRID(
 
